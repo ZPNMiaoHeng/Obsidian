@@ -1,0 +1,17 @@
+{
+  "vimMode": true,
+  "pdfExportSettings": {
+    "includeName": true,
+    "pageSize": "A4",
+    "landscape": false,
+    "margin": "0",
+    "downscalePercent": 100
+  },
+  "promptDelete": false,
+  "alwaysUpdateLinks": true,
+  "showLineNumber": false,
+  "rightToLeft": false,
+  "newFileLocation": "folder",
+  "attachmentFolderPath": "./",
+  "newFileFolderPath": "todo_note"
+}

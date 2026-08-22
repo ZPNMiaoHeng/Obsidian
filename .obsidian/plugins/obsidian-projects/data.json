@@ -1,0 +1,95 @@
+{
+  "version": 2,
+  "projects": [
+    {
+      "fieldConfig": {
+        "status": {
+          "options": [
+            "Todo",
+            "Doing",
+            "Done",
+            "Waiting"
+          ],
+          "richText": true
+        }
+      },
+      "defaultName": "",
+      "templates": [],
+      "excludedNotes": [],
+      "isDefault": true,
+      "dataSource": {
+        "kind": "tag",
+        "config": {
+          "tag": "#7000N",
+          "hierarchy": true
+        }
+      },
+      "newNotesFolder": "",
+      "views": [
+        {
+          "config": {
+            "fieldConfig": {
+              "path": {
+                "width": 284
+              },
+              "name": {
+                "width": 332
+              }
+            },
+            "orderFields": [
+              "name",
+              "status",
+              "tags",
+              "path"
+            ]
+          },
+          "filter": {
+            "conjunction": "and",
+            "conditions": []
+          },
+          "colors": {
+            "conditions": []
+          },
+          "sort": {
+            "criteria": []
+          },
+          "id": "bf6500fb-f62d-4c73-99a0-96b971de3b8a",
+          "name": "表格",
+          "type": "table"
+        },
+        {
+          "config": {
+            "groupByField": "status"
+          },
+          "filter": {
+            "conjunction": "and",
+            "conditions": []
+          },
+          "colors": {
+            "conditions": []
+          },
+          "sort": {
+            "criteria": []
+          },
+          "id": "f3d95ce7-7435-4fbb-afdb-3d45437f2cd0",
+          "name": "看板",
+          "type": "board"
+        }
+      ],
+      "id": "511cfde0-9af6-4bf6-abe9-e29fc9c3708a",
+      "name": "7000N"
+    }
+  ],
+  "archives": [],
+  "preferences": {
+    "projectSizeLimit": 1000,
+    "frontmatter": {
+      "quoteStrings": "PLAIN"
+    },
+    "locale": {
+      "firstDayOfWeek": "monday"
+    },
+    "commands": [],
+    "linkBehavior": "open-editor"
+  }
+}

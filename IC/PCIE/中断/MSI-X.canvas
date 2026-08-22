@@ -1,0 +1,233 @@
+{
+  "edges": [
+    {
+      "fromNode": "f10104e83937e2ac",
+      "fromSide": "right",
+      "id": "99aa7e9eddd1fe63",
+      "styleAttributes": {
+      },
+      "toNode": "a3a6b4ceb229c798",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "f10104e83937e2ac",
+      "fromSide": "right",
+      "id": "818883bc4fbf86a6",
+      "styleAttributes": {
+      },
+      "toNode": "9fa2b9cce5dd8a3a",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "ac2287833353c8c6",
+      "fromSide": "right",
+      "id": "9da8a495ec45e595",
+      "styleAttributes": {
+      },
+      "toNode": "dae9abef29fba01d",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "f10104e83937e2ac",
+      "fromSide": "left",
+      "id": "622e965b6cdee217",
+      "styleAttributes": {
+      },
+      "toNode": "3fb3f4b36d346d11",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "b91f3ae94bb0793c",
+      "fromSide": "right",
+      "id": "da8e665efc2f26e8",
+      "styleAttributes": {
+      },
+      "toNode": "2d0b0d266da9a739",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "3152d52a6e0a43d6",
+      "fromSide": "right",
+      "id": "bfb41ed1850aeee0",
+      "styleAttributes": {
+      },
+      "toNode": "b91f3ae94bb0793c",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "3152d52a6e0a43d6",
+      "fromSide": "right",
+      "id": "4a2771659dfaebcd",
+      "styleAttributes": {
+      },
+      "toNode": "a44b9efccf208718",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "3152d52a6e0a43d6",
+      "fromSide": "right",
+      "id": "0f6cbb0ac1de8848",
+      "styleAttributes": {
+      },
+      "toNode": "023c7ad23c57da95",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "3152d52a6e0a43d6",
+      "fromSide": "right",
+      "id": "2fd1c40211043e0e",
+      "styleAttributes": {
+      },
+      "toNode": "a843f451e1d13057",
+      "toSide": "left"
+    }
+  ],
+  "nodes": [
+    {
+      "file": "Note/Pic/MSI 类型1、2.png",
+      "height": 278,
+      "id": "a3a6b4ceb229c798",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": -400,
+      "y": -240
+    },
+    {
+      "file": "Note/Pic/MSI 类型3、4.png",
+      "height": 385,
+      "id": "9fa2b9cce5dd8a3a",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -400,
+      "y": 120
+    },
+    {
+      "height": 60,
+      "id": "f10104e83937e2ac",
+      "styleAttributes": {
+      },
+      "text": "MSI 类型",
+      "type": "text",
+      "width": 100,
+      "x": -600,
+      "y": 90
+    },
+    {
+      "file": "Note/Pic/Message Control Register.png",
+      "height": 141,
+      "id": "ac2287833353c8c6",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 80,
+      "y": -310
+    },
+    {
+      "file": "Note/Pic/Message Control Register 字段功能描述.png",
+      "height": 400,
+      "id": "dae9abef29fba01d",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 204,
+      "x": 580,
+      "y": -440
+    },
+    {
+      "file": "Note/Pic/MSI TLP 传输事务构建.png",
+      "height": 371,
+      "id": "3fb3f4b36d346d11",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -1080,
+      "y": -65
+    },
+    {
+      "height": 60,
+      "id": "3152d52a6e0a43d6",
+      "styleAttributes": {
+        "textAlign": "center"
+      },
+      "text": "MSI-X",
+      "type": "text",
+      "width": 66,
+      "x": -640,
+      "y": 1000
+    },
+    {
+      "file": "Note/Pic/Message Control 寄存器.png",
+      "height": 224,
+      "id": "b91f3ae94bb0793c",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -400,
+      "y": 776
+    },
+    {
+      "file": "Note/Pic/Message Control 寄存器字段描述.png",
+      "height": 292,
+      "id": "2d0b0d266da9a739",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 80,
+      "y": 742
+    },
+    {
+      "file": "Note/Pic/MSI-X 查找表示意图.png",
+      "height": 349,
+      "id": "a44b9efccf208718",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -400,
+      "y": 1140
+    },
+    {
+      "file": "Note/Pic/MSI-X 结构图.png",
+      "height": 187,
+      "id": "023c7ad23c57da95",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -400,
+      "y": 1600
+    },
+    {
+      "file": "Note/Pic/Pending Bits.png",
+      "height": 212,
+      "id": "a843f451e1d13057",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -400,
+      "y": 1860
+    },
+    {
+      "color": "1",
+      "height": 60,
+      "id": "4dd379d2e2c9d168",
+      "styleAttributes": {
+        "shape": "document"
+      },
+      "text": "",
+      "type": "text",
+      "width": 260,
+      "x": 260,
+      "y": 420
+    }
+  ]
+}

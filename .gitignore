@@ -1,0 +1,16 @@
+Manual/
+
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/copilot/data.json
+.obsidian/plugins/image-upload-toolkit/data.json
+.obsidian/plugins/copilot/data-v3-credentials-backup-5de856c2.json
+
+.trash/
+
+# Dir
+/IC/Reference/**
+# /Note/copilot/**
+
+# Ignore Smart Environment folder
+.smart-env

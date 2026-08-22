@@ -1,0 +1,158 @@
+{
+  "dualConfigs": false,
+  "showConsoleLog": false,
+  "desktop": {
+    "shortDelaySeconds": 5,
+    "longDelaySeconds": 15,
+    "delayBetweenPlugins": 40,
+    "defaultStartupType": "disabled",
+    "showDescriptions": true,
+    "enableDependencies": false,
+    "plugins": {
+      "advanced-canvas": {
+        "startupType": "short"
+      },
+      "table-editor-obsidian": {
+        "startupType": "long"
+      },
+      "obsidian-banners": {
+        "startupType": "disabled"
+      },
+      "calendar-beta": {
+        "startupType": "instant"
+      },
+      "obsidian-checklist-plugin": {
+        "startupType": "instant"
+      },
+      "oz-clear-unused-images": {
+        "startupType": "long"
+      },
+      "contribution-graph": {
+        "startupType": "instant"
+      },
+      "copilot": {
+        "startupType": "long"
+      },
+      "dataview": {
+        "startupType": "instant"
+      },
+      "obsidian-day-planner": {
+        "startupType": "instant"
+      },
+      "double-click-image-opener": {
+        "startupType": "long"
+      },
+      "obsidian-excalidraw-plugin": {
+        "startupType": "long"
+      },
+      "file-tree-alternative": {
+        "startupType": "instant"
+      },
+      "obsidian-git": {
+        "startupType": "long"
+      },
+      "obsidian-hider": {
+        "startupType": "instant"
+      },
+      "homepage": {
+        "startupType": "instant"
+      },
+      "obsidian-kanban": {
+        "startupType": "short"
+      },
+      "obsidian-markmind": {
+        "startupType": "long"
+      },
+      "obsidian-minimal-settings": {
+        "startupType": "instant"
+      },
+      "obsidian-outliner": {
+        "startupType": "instant"
+      },
+      "obsidian-paste-image-rename": {
+        "startupType": "long"
+      },
+      "periodic-notes": {
+        "startupType": "disabled"
+      },
+      "pkmer": {
+        "startupType": "disabled"
+      },
+      "quick-explorer": {
+        "startupType": "instant"
+      },
+      "recent-notes": {
+        "startupType": "instant"
+      },
+      "simple-mind-map": {
+        "startupType": "long"
+      },
+      "obsidian-tasks-plugin": {
+        "startupType": "short"
+      },
+      "templater-obsidian": {
+        "startupType": "instant"
+      },
+      "obsidian-image-auto-upload-plugin": {
+        "startupType": "disabled"
+      },
+      "drawio-obsidian": {
+        "startupType": "long"
+      },
+      "smart-connections": {
+        "startupType": "disabled"
+      },
+      "obsidian-memos": {
+        "startupType": "disabled"
+      },
+      "day-planner-og": {
+        "startupType": "disabled"
+      },
+      "obsidian-projects": {
+        "startupType": "long"
+      },
+      "obsidian-image-toolkit": {
+        "startupType": "long"
+      },
+      "image-upload-toolkit": {
+        "startupType": "long"
+      },
+      "omnisearch": {
+        "startupType": "long"
+      },
+      "pdf-plus": {
+        "startupType": "long"
+      },
+      "translate": {
+        "startupType": "disabled"
+      },
+      "obsidian-advanced-slides": {
+        "startupType": "long"
+      },
+      "slides-extended": {
+        "startupType": "disabled"
+      },
+      "mermaid-tools": {
+        "startupType": "disabled"
+      },
+      "obsidian-task-collector": {
+        "startupType": "disabled"
+      },
+      "journals": {
+        "startupType": "disabled"
+      },
+      "prisma-calendar": {
+        "startupType": "disabled"
+      },
+      "apex-dashboard": {
+        "startupType": "disabled"
+      },
+      "hearth": {
+        "startupType": "disabled"
+      },
+      "zotlit": {
+        "startupType": "disabled"
+      }
+    }
+  }
+}

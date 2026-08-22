@@ -1,0 +1,28 @@
+{
+  "edges": [
+  ],
+  "nodes": [
+    {
+      "file": "Note/Pic/Basic Timer 模块图.png",
+      "height": 177,
+      "id": "18ce950c4fcd809c",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "file": "Note/Pic/时钟分频为2的计数器时序图.png",
+      "height": 107,
+      "id": "61c973bf4b320a58",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 0,
+      "y": -260
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+---
+path: IC/PCIE/PCIe 面试.smm.md
+tags:
+  - simplemindmap
+---
+> 请勿修改除YAML外的任何信息
+# metadata
+```metadata
+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=
+```
+# svgdata
+![[.smm-embed-image-files/PCIe 面试.svg]]
+> updateAt: 2026-06-11 17:26:00
+# linkdata
+- [[4.0 是高速串行总线，它与传统的 PCI 并行总线相比，核心差异是什么？为什么要从并行转向串行？]]
+- [[既然是串行，那接收端怎么从数据里把时钟恢复出来？]]
+- [[为什么有些场景下，明明一条 x16 插槽，系统却只能在 x8 甚至 x4 跑？]]
+- [[PCIe 4.0 的单 Lane 速率、编码方式和有效带宽是多少？]]
+- [[请分享一个你在 PCIe 4.0 项目里遇到的最棘手问题，以及你从头到尾是怎么解决的。]]
+# textdata
+PCIe ^cc759413-fc0a-493d-9e15-e24cbc6b8d5c
+
+协议本身 ^7408e2ba-2a94-4550-95bf-1bfb601967db
+
+PCIe 3.0/4.0 是高速串行总线，它与传统的 PCI 并行总线相比，核心差异是什么？为什么要从并行转向串行？ ^f4b0fb3e-b94a-43f4-b22b-84cb933df882
+
+既然是串行，那接收端怎么从数据里把时钟恢复出来？ ^78d29dc6-16e1-4c56-b169-a2dcc68bddc7
+
+为什么有些场景下，明明一条 x16 插槽，系统却只能在 x8 甚至 x4 跑？ ^462756c0-7914-45cc-ab10-4f36044ff2f3
+
+PCIe 4.0 的单 Lane 速率、编码方式和有效带宽是多少？ ^ef0a0144-f2ad-4b83-af4a-cd75f0cb3099
+
+请分享一个你在 PCIe 4.0 项目里遇到的最棘手问题，以及你从头到尾是怎么解决的。 ^b07232e3-de6d-454f-9588-f9189a540563

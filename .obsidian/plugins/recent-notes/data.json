@@ -1,0 +1,37 @@
+{
+  "maxNotesToShow": 100,
+  "showMarkdownFiles": true,
+  "showImageFiles": false,
+  "showPDFFiles": true,
+  "showAudioFiles": false,
+  "showVideoFiles": false,
+  "showCanvasFiles": true,
+  "showCSVFiles": true,
+  "showBaseFiles": true,
+  "excludedFolders": [
+    "Note/Daily",
+    "Note/copilot",
+    "export/"
+  ],
+  "excludedFiles": [],
+  "excludedTags": [],
+  "previewLines": 3,
+  "showTime": true,
+  "showFolderName": true,
+  "pinnedNotes": [
+    "MD5、SHA1 开源代码，评估资源消耗.md",
+    "项目计划.md",
+    "DLB 老化分析.md",
+    "共享表规格汇总.md",
+    "Note/Excalidraw/table/l3_tunnel_t&&data.excalidraw.md",
+    "todo_note/zed快捷键.md"
+  ],
+  "dateFormat": "RELATIVE",
+  "propertyModified": "",
+  "density": "comfortable",
+  "openInNewTab": "new",
+  "showThumbnail": false,
+  "thumbnailProperty": "image",
+  "thumbnailPosition": "right",
+  "pageStepSize": 10
+}

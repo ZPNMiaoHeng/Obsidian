@@ -1,0 +1,159 @@
+{
+  "edges": [
+    {
+      "fromNode": "cc193d900b2661a4",
+      "fromSide": "left",
+      "id": "7b2960da15adf7eb",
+      "styleAttributes": {
+        "pathfindingMethod": "square"
+      },
+      "toNode": "4c5717b087f8cc4a",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "4c5717b087f8cc4a",
+      "fromSide": "left",
+      "id": "da890ffc4050b05a",
+      "styleAttributes": {
+      },
+      "toNode": "52200e63107e5149",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "4c5717b087f8cc4a",
+      "fromSide": "left",
+      "id": "e2f699ded74ef1e0",
+      "styleAttributes": {
+      },
+      "toNode": "e895cee6112847cb",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "e895cee6112847cb",
+      "fromSide": "bottom",
+      "id": "b8adf61af4ee1570",
+      "styleAttributes": {
+      },
+      "toNode": "22d688f6b164673e",
+      "toSide": "top"
+    },
+    {
+      "fromNode": "4c5717b087f8cc4a",
+      "fromSide": "left",
+      "id": "d5d85d144b4e7427",
+      "styleAttributes": {
+      },
+      "toNode": "49ed204aecb8b095",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "4c5717b087f8cc4a",
+      "fromSide": "left",
+      "id": "a8f3652ba522dad3",
+      "styleAttributes": {
+      },
+      "toNode": "de3166684dba621e",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "cc193d900b2661a4",
+      "fromSide": "right",
+      "id": "0b5d65e1163291d6",
+      "styleAttributes": {
+        "pathfindingMethod": "direct"
+      },
+      "toNode": "b0f2b50ac9754e7b",
+      "toSide": "left"
+    }
+  ],
+  "nodes": [
+    {
+      "file": "Note/Pic/WWDG 模块图.png",
+      "height": 160,
+      "id": "cc193d900b2661a4",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "file": "Note/Pic/表8.1：WWDG 寄存器偏移地址.png",
+      "height": 65,
+      "id": "4c5717b087f8cc4a",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 398,
+      "x": -440,
+      "y": 48
+    },
+    {
+      "file": "Note/Pic/表8.2：WWDG_CR 寄存器格式.png",
+      "height": 165,
+      "id": "52200e63107e5149",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -920,
+      "y": -200
+    },
+    {
+      "file": "Note/Pic/表8.3：WWDG_CFR 寄存器格式.png",
+      "height": 195,
+      "id": "e895cee6112847cb",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -920,
+      "y": 16
+    },
+    {
+      "height": 60,
+      "id": "22d688f6b164673e",
+      "styleAttributes": {
+      },
+      "text": "当 WWDG 正在运行时，WWDG_CFR 寄存器不能被调整。",
+      "type": "text",
+      "width": 260,
+      "x": -850,
+      "y": 240
+    },
+    {
+      "file": "Note/Pic/表8.4：WWDG_SR 寄存器格式.png",
+      "height": 152,
+      "id": "49ed204aecb8b095",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": -920,
+      "y": 340
+    },
+    {
+      "file": "Note/Pic/表8.5：WWDG_VER 寄存器格式.png",
+      "height": 34,
+      "id": "de3166684dba621e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 398,
+      "x": -920,
+      "y": 560
+    },
+    {
+      "file": "Note/Pic/表9.1：WWDG 全信号接口.png",
+      "height": 65,
+      "id": "b0f2b50ac9754e7b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 460,
+      "y": 48
+    }
+  ]
+}

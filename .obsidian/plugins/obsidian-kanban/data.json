@@ -1,0 +1,25 @@
+{
+  "show-checkboxes": true,
+  "move-dates": true,
+  "move-tags": true,
+  "tag-sort": [
+    {
+      "tag": "#card"
+    }
+  ],
+  "tag-colors": [
+    {
+      "tagKey": "#card",
+      "color": "",
+      "backgroundColor": ""
+    }
+  ],
+  "full-list-lane-width": true,
+  "new-note-folder": "Note/Card",
+  "tag-action": "kanban",
+  "new-note-template": "Note/Templete/Card temp.md",
+  "link-date-to-daily-note": true,
+  "archive-with-date": true,
+  "append-archive-date": true,
+  "move-task-metadata": true
+}

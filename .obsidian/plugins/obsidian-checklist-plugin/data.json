@@ -1,0 +1,18 @@
+{
+  "todoPageName": "todo\npro_todo",
+  "showChecked": false,
+  "showAllTodos": true,
+  "showOnlyActiveFile": false,
+  "autoRefresh": true,
+  "subGroups": false,
+  "groupBy": "page",
+  "sortDirectionItems": "new->old",
+  "sortDirectionGroups": "new->old",
+  "sortDirectionSubGroups": "new->old",
+  "includeFiles": "",
+  "lookAndFeel": "classic",
+  "_collapsedSections": [],
+  "_hiddenTags": [
+    "pro_todo"
+  ]
+}

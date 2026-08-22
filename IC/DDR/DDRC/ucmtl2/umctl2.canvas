@@ -1,0 +1,128 @@
+{
+  "edges": [
+    {
+      "fromNode": "53de6e82cbcc1346",
+      "fromSide": "right",
+      "id": "8a93f247827e8fe2",
+      "styleAttributes": {
+      },
+      "toNode": "912a8dd3937e5842",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "912a8dd3937e5842",
+      "fromSide": "right",
+      "id": "d10f38ed1d8392af",
+      "styleAttributes": {
+      },
+      "toNode": "e8b56c1c3ce5fa82",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "912a8dd3937e5842",
+      "fromSide": "right",
+      "id": "e8d5ac8ef028c61c",
+      "styleAttributes": {
+      },
+      "toNode": "615fc369d2ac7c9e",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e8b56c1c3ce5fa82",
+      "fromSide": "right",
+      "id": "574f8c6aee32aad4",
+      "styleAttributes": {
+      },
+      "toNode": "b76a1f5385e10ee7",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "615fc369d2ac7c9e",
+      "fromSide": "right",
+      "id": "52e8230462deb147",
+      "styleAttributes": {
+      },
+      "toNode": "8014144c60490452",
+      "toSide": "left"
+    }
+  ],
+  "nodes": [
+    {
+      "file": "Note/Pic/ECC Scrubber（SBR）--- ECC 巡检.png",
+      "height": 296,
+      "id": "78bfead63d544315",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -240,
+      "y": -120
+    },
+    {
+      "file": "Note/Pic/命令真值表.png",
+      "height": 371,
+      "id": "53de6e82cbcc1346",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -240,
+      "y": 360
+    },
+    {
+      "file": "Note/Pic/MR0.png",
+      "height": 184,
+      "id": "e8b56c1c3ce5fa82",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 720,
+      "y": 308
+    },
+    {
+      "file": "Note/Pic/CAS Latency.png",
+      "height": 400,
+      "id": "b76a1f5385e10ee7",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 272,
+      "x": 1180,
+      "y": 200
+    },
+    {
+      "file": "Note/Pic/MR2.png",
+      "height": 202,
+      "id": "615fc369d2ac7c9e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 720,
+      "y": 648
+    },
+    {
+      "file": "Note/Pic/CWL（CAS Write Latency）.png",
+      "height": 174,
+      "id": "8014144c60490452",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1180,
+      "y": 662
+    },
+    {
+      "height": 248,
+      "id": "912a8dd3937e5842",
+      "styleAttributes": {
+      },
+      "text": "1、MR 命令可以从DDRC发出，也可以跳过DDRC，通过 PHY 控制 MR 命令。\n2、MR 命令在 DDR 接口上查看：DQ 上无数据传输，CA 上传输 MR 命令和数据通过查看 {BG0，BA1，BA0}  判断当前 MR 命令类别，地址线传输数据。\n3、在 DDR 系统初始化时配置 MR 寄存器。\n4、当前只列举了熟悉的MR；",
+      "type": "text",
+      "width": 400,
+      "x": 220,
+      "y": 400
+    }
+  ]
+}

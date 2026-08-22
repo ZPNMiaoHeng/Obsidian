@@ -1,0 +1,13 @@
+{
+  "theme": "obsidian",
+  "nativeMenus": false,
+  "accentColor": "#94e2d5",
+  "cssTheme": "Minimal",
+  "baseFontSize": 18,
+  "baseFontSizeAction": true,
+  "monospaceFontFamily": "Inter",
+  "textFontFamily": "Inter",
+  "showRibbon": true,
+  "showViewHeader": true,
+  "interfaceFontFamily": "Inter"
+}

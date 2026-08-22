@@ -1,0 +1,45 @@
+{
+	"edges":[],
+	"nodes":[
+		{
+			"file":"Note/Pic/文档6.7.7 NTB.png",
+			"height":90,
+			"id":"5594212863adf72e",
+			"styleAttributes":{},
+			"type":"file",
+			"width":400,
+			"x":-460,
+			"y":-220
+		},
+		{
+			"file":"Note/Pic/NTB 概设 BAR.png",
+			"height":54,
+			"id":"c9996f67c0f21fd7",
+			"styleAttributes":{},
+			"type":"file",
+			"width":400,
+			"x":-460,
+			"y":-20
+		},
+		{
+			"file":"Note/Pic/NTB 概设 BAR2-5.png",
+			"height":65,
+			"id":"c968785a2dd72746",
+			"styleAttributes":{},
+			"type":"file",
+			"width":400,
+			"x":-460,
+			"y":120
+		},
+		{
+			"file":"Note/Pic/NTB 概设 NTE 固定端口.png",
+			"height":62,
+			"id":"0317f4ccb9d005e7",
+			"styleAttributes":{},
+			"type":"file",
+			"width":398,
+			"x":-460,
+			"y":280
+		}
+	]
+}

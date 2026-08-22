@@ -1,0 +1,1225 @@
+{
+  "edges": [
+    {
+      "fromNode": "d987e5fe952a451e",
+      "fromSide": "right",
+      "id": "812f8756e2d06a18",
+      "styleAttributes": {
+      },
+      "toNode": "bf72c6f8bd4c9d21",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "bf72c6f8bd4c9d21",
+      "fromSide": "right",
+      "id": "f27399d56ebdbc0c",
+      "styleAttributes": {
+      },
+      "toNode": "47b520e5787348ee",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "bf72c6f8bd4c9d21",
+      "fromSide": "right",
+      "id": "ffa0ed4401a54e99",
+      "styleAttributes": {
+        "pathfindingMethod": "square"
+      },
+      "toNode": "bb738a7c52d2aa38",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5a639a5f756112ed",
+      "fromSide": "right",
+      "id": "ceb5ae9e1ec2bea2",
+      "styleAttributes": {
+      },
+      "toNode": "4bf7e8fc592ecc63",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "b323f636f82bdca5",
+      "fromSide": "right",
+      "id": "7400d5ca509a9bcc",
+      "styleAttributes": {
+      },
+      "toNode": "bf8aa4a269b3e60e",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "c89fc2eb7019f9a9",
+      "fromSide": "right",
+      "id": "612865e8957bc64b",
+      "styleAttributes": {
+      },
+      "toNode": "b323f636f82bdca5",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "12376e2e97490786",
+      "fromSide": "right",
+      "id": "01822efd37167413",
+      "styleAttributes": {
+      },
+      "toNode": "c89fc2eb7019f9a9",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "c89fc2eb7019f9a9",
+      "fromSide": "right",
+      "id": "58fc382430438fd7",
+      "styleAttributes": {
+      },
+      "toNode": "5a639a5f756112ed",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "c89fc2eb7019f9a9",
+      "fromSide": "right",
+      "id": "68de2dcb018615c9",
+      "styleAttributes": {
+      },
+      "toNode": "d3a444b0d3136d77",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "fca55b458009dfdb",
+      "fromSide": "bottom",
+      "id": "004211f35818e117",
+      "styleAttributes": {
+      },
+      "toNode": "6bc0cfa4bf30b7c5",
+      "toSide": "top"
+    },
+    {
+      "fromNode": "4bf7e8fc592ecc63",
+      "fromSide": "right",
+      "id": "b0a6bed24c0f0d5f",
+      "styleAttributes": {
+      },
+      "toNode": "6bc0cfa4bf30b7c5",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "bf8aa4a269b3e60e",
+      "fromSide": "right",
+      "id": "13f17ebb0f185314",
+      "styleAttributes": {
+      },
+      "toNode": "6bc0cfa4bf30b7c5",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "ed9d908f927b7883",
+      "fromSide": "right",
+      "id": "efb791956ffd4da1",
+      "styleAttributes": {
+      },
+      "toNode": "6bc0cfa4bf30b7c5",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "12376e2e97490786",
+      "fromSide": "left",
+      "id": "85aab1cdbac8514a",
+      "styleAttributes": {
+      },
+      "toNode": "72a0e86a5bbb028b",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "12376e2e97490786",
+      "fromSide": "left",
+      "id": "c841d1edf3af6822",
+      "styleAttributes": {
+      },
+      "toNode": "bbed89298c6a24b7",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "cb639fa9d1e0f29e",
+      "fromSide": "bottom",
+      "id": "0f942c4e4a96f442",
+      "styleAttributes": {
+      },
+      "toNode": "b914e98c1536937e",
+      "toSide": "top"
+    },
+    {
+      "fromNode": "cb639fa9d1e0f29e",
+      "fromSide": "right",
+      "id": "3adf1522f3e644b3",
+      "styleAttributes": {
+      },
+      "toNode": "5c1a5cc451ead6f0",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "a2b3b236db0223eb",
+      "fromSide": "right",
+      "id": "c252813c1f3e13eb",
+      "styleAttributes": {
+      },
+      "toNode": "5e5162d621a58d60",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5e5162d621a58d60",
+      "fromSide": "right",
+      "id": "c747870ed353cc5e",
+      "styleAttributes": {
+      },
+      "toNode": "e361216c99c3ecc9",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5e5162d621a58d60",
+      "fromSide": "right",
+      "id": "206d8ce864e31239",
+      "styleAttributes": {
+      },
+      "toNode": "6cbaf824c818820b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5e5162d621a58d60",
+      "fromSide": "right",
+      "id": "c393023cf4815d6d",
+      "styleAttributes": {
+      },
+      "toNode": "a5e1609727f38279",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "a2b3b236db0223eb",
+      "fromSide": "left",
+      "id": "cfc98740478b3f58",
+      "styleAttributes": {
+      },
+      "toNode": "d84df02aaf83efd1",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "a2b3b236db0223eb",
+      "fromSide": "left",
+      "id": "74282aac6aefcc30",
+      "styleAttributes": {
+      },
+      "toNode": "2df1ed63d42d05bf",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "a2b3b236db0223eb",
+      "fromSide": "left",
+      "id": "3d0095ebbce62984",
+      "styleAttributes": {
+      },
+      "toNode": "2a0f67d5fff7daa4",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "a2b3b236db0223eb",
+      "fromSide": "left",
+      "id": "a4bcfe2e0b73b86e",
+      "styleAttributes": {
+      },
+      "toNode": "01a04be5a5e3dbc0",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "a2b3b236db0223eb",
+      "fromSide": "right",
+      "id": "da4b8b0e9a43fad0",
+      "styleAttributes": {
+      },
+      "toNode": "49a9bc980927f81f",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e361216c99c3ecc9",
+      "fromSide": "right",
+      "id": "23aab24f5e6c17a9",
+      "styleAttributes": {
+      },
+      "toNode": "26e2ce10987483c6",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "49a9bc980927f81f",
+      "fromSide": "right",
+      "id": "b48aa30c49eb4135",
+      "styleAttributes": {
+      },
+      "toNode": "82e36dd5451cb48a",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "49a9bc980927f81f",
+      "fromSide": "right",
+      "id": "6cb66178f472898a",
+      "styleAttributes": {
+      },
+      "toNode": "294f0a823c678d28",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "190d842ab3c74f46",
+      "fromSide": "right",
+      "id": "08cc1fe5d1e92299",
+      "styleAttributes": {
+      },
+      "toNode": "244d9a58a58eaa13",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "49a9bc980927f81f",
+      "fromSide": "right",
+      "id": "4f5d8191285d1a46",
+      "styleAttributes": {
+      },
+      "toNode": "190d842ab3c74f46",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "497b3dd02d952eac",
+      "fromSide": "right",
+      "id": "3aeb540db3cfa184",
+      "styleAttributes": {
+      },
+      "toNode": "ca65468804ac7156",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "ca65468804ac7156",
+      "fromSide": "right",
+      "id": "a3e650bab8a2b85b",
+      "styleAttributes": {
+      },
+      "toNode": "6bb6418e35b77b29",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "6bb6418e35b77b29",
+      "fromSide": "right",
+      "id": "b406e9a6a3f49b79",
+      "styleAttributes": {
+      },
+      "toNode": "b725c8ae4319db59",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "ca65468804ac7156",
+      "fromSide": "right",
+      "id": "41f4e34d7ab72d1c",
+      "styleAttributes": {
+      },
+      "toNode": "571a80669b95a20d",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "571a80669b95a20d",
+      "fromSide": "right",
+      "id": "e207c0035a62fe33",
+      "styleAttributes": {
+      },
+      "toNode": "657250d356781c56",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "ca65468804ac7156",
+      "fromSide": "right",
+      "id": "e06adfb581d1656d",
+      "styleAttributes": {
+      },
+      "toNode": "43f60dbda1ab426c",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "43f60dbda1ab426c",
+      "fromSide": "right",
+      "id": "43a63f670b144406",
+      "styleAttributes": {
+      },
+      "toNode": "b4a3d28e0b1cc44a",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "ca65468804ac7156",
+      "fromSide": "right",
+      "id": "c0a20f7fb96ad68e",
+      "styleAttributes": {
+      },
+      "toNode": "1bc4a235052b8b46",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "a793806e6e19783f",
+      "fromSide": "right",
+      "id": "afe1a51d0e16a0d6",
+      "styleAttributes": {
+      },
+      "toNode": "cd77ab927af48a47",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "a793806e6e19783f",
+      "fromSide": "right",
+      "id": "6f301c16e66e6379",
+      "styleAttributes": {
+      },
+      "toNode": "3d87166010869d2e",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "cb58ebc49ec3e932",
+      "fromSide": "right",
+      "id": "ba10d57ea2deeda7",
+      "styleAttributes": {
+      },
+      "toNode": "28f561401648f5ec",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "28f561401648f5ec",
+      "fromSide": "right",
+      "id": "68a60d931a42027d",
+      "styleAttributes": {
+      },
+      "toNode": "d1645ab6f7fd3d00",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "cb58ebc49ec3e932",
+      "fromSide": "right",
+      "id": "8e0eb849dc530226",
+      "styleAttributes": {
+      },
+      "toNode": "281cb9394ff4f919",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "281cb9394ff4f919",
+      "fromSide": "right",
+      "id": "8531f49cddbc455f",
+      "styleAttributes": {
+      },
+      "toNode": "eb8c9a06f84640e8",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "28f561401648f5ec",
+      "fromSide": "right",
+      "id": "fc3c7e2b2b45ede5",
+      "styleAttributes": {
+      },
+      "toNode": "51a877f6805f3fb8",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "eb8c9a06f84640e8",
+      "fromSide": "right",
+      "id": "6f459247cf14e6e2",
+      "styleAttributes": {
+      },
+      "toNode": "a86bc5c2fd94595b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "eac2092e926e89c5",
+      "fromSide": "left",
+      "id": "a8ec3af227d14829",
+      "styleAttributes": {
+      },
+      "toNode": "d92b053172f4d973",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "eac2092e926e89c5",
+      "fromSide": "left",
+      "id": "54ca4a499c3dc337",
+      "styleAttributes": {
+      },
+      "toNode": "22e30eb20892c88e",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "677446c324885825",
+      "fromSide": "right",
+      "id": "657013c50af8a2bd",
+      "styleAttributes": {
+      },
+      "toNode": "7ce8f6071ca2497c",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "eac2092e926e89c5",
+      "fromSide": "right",
+      "id": "d0c364c6f4641873",
+      "styleAttributes": {
+      },
+      "toNode": "677446c324885825",
+      "toSide": "left"
+    }
+  ],
+  "nodes": [
+    {
+      "height": 2480,
+      "id": "cf18c83d25657ac7",
+      "label": "TLP 报文格式",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 2980,
+      "x": -1660,
+      "y": -2280
+    },
+    {
+      "height": 1366,
+      "id": "f404f4c0d09b493c",
+      "label": "Type 格式",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 3471,
+      "x": -1740,
+      "y": 440
+    },
+    {
+      "height": 2235,
+      "id": "50c7365271bb608d",
+      "label": "DLLP",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 1900,
+      "x": -1240,
+      "y": -4980
+    },
+    {
+      "height": 826,
+      "id": "baaf4a2c7368b3eb",
+      "label": "数据链路",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 1480,
+      "x": -4160,
+      "y": -841
+    },
+    {
+      "height": 300,
+      "id": "2ac60d4c5a93e1b2",
+      "label": "未命名组",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 300,
+      "x": -260,
+      "y": -5600
+    },
+    {
+      "file": "Note/Pic/Ack、Nak DLLP 报文格式.png",
+      "height": 128,
+      "id": "6bb6418e35b77b29",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": -240,
+      "y": -3780
+    },
+    {
+      "file": "Note/Pic/DLLP 的类型和目标应用.png",
+      "height": 400,
+      "id": "ca65468804ac7156",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 366,
+      "x": -740,
+      "y": -3740
+    },
+    {
+      "file": "Note/Pic/功耗管理字段.png",
+      "height": 155,
+      "id": "657250d356781c56",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 240,
+      "y": -3478
+    },
+    {
+      "file": "Note/Pic/Flow Control DLLP 报文格式.png",
+      "height": 122,
+      "id": "43f60dbda1ab426c",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": -240,
+      "y": -3160
+    },
+    {
+      "file": "Note/Pic/Gen3 物理层发送逻辑细节.png",
+      "height": 399,
+      "id": "cb58ebc49ec3e932",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 298,
+      "x": 1280,
+      "y": -6219
+    },
+    {
+      "file": "Note/Pic/Gen3 x4 Byte Striping.png",
+      "height": 244,
+      "id": "28f561401648f5ec",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1660,
+      "y": -6341
+    },
+    {
+      "file": "Note/Pic/Gen3 x8 Byte Striping 举例.png",
+      "height": 256,
+      "id": "d1645ab6f7fd3d00",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2160,
+      "y": -6469
+    },
+    {
+      "file": "Note/Pic/Gen3 x8 无效报文.png",
+      "height": 247,
+      "id": "51a877f6805f3fb8",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 2160,
+      "y": -6180
+    },
+    {
+      "file": "Note/Pic/Gen3 有序集示例 SOS.png",
+      "height": 154,
+      "id": "281cb9394ff4f919",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 1660,
+      "y": -5880
+    },
+    {
+      "file": "Note/Pic/Gen3 x8 skip Ordered Set（SOS） 举例.png",
+      "height": 275,
+      "id": "eb8c9a06f84640e8",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2160,
+      "y": -5863
+    },
+    {
+      "file": "Note/Pic/TLP Filld 3.png",
+      "height": 400,
+      "id": "a5e1609727f38279",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 385,
+      "x": 310,
+      "y": -1358
+    },
+    {
+      "file": "Note/Pic/TLP Filld 2.png",
+      "height": 397,
+      "id": "6cbaf824c818820b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 310,
+      "y": -1801
+    },
+    {
+      "file": "Note/Pic/TLP Filld 1.png",
+      "height": 400,
+      "id": "e361216c99c3ecc9",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 340,
+      "x": 310,
+      "y": -2258
+    },
+    {
+      "file": "Note/Pic/TLP 报文头格式.png",
+      "height": 227,
+      "id": "5e5162d621a58d60",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -320,
+      "y": -1803
+    },
+    {
+      "file": "Note/Pic/32、64bits 地址.png",
+      "height": 279,
+      "id": "d92b053172f4d973",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2660,
+      "y": -1600
+    },
+    {
+      "file": "Note/Pic/32、64bits的 Per-Vector Masking 地址.png",
+      "height": 387,
+      "id": "22e30eb20892c88e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2660,
+      "y": -1260
+    },
+    {
+      "height": 120,
+      "id": "eac2092e926e89c5",
+      "styleAttributes": {
+      },
+      "text": "MSI：\n**Capability ID**：只读，05h表示支持MSI功能；\n**Next Capability Pointer**：只读的，其用于查找下一个Capability Structure的位置，其值为00h则表示到达Linked List的最后了。",
+      "type": "text",
+      "width": 320,
+      "x": 3240,
+      "y": -1360
+    },
+    {
+      "file": "Note/Pic/Message Control Register 1.png",
+      "height": 141,
+      "id": "677446c324885825",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 3640,
+      "y": -1462
+    },
+    {
+      "file": "Note/Pic/字段解释.png",
+      "height": 400,
+      "id": "7ce8f6071ca2497c",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 204,
+      "x": 4120,
+      "y": -1591
+    },
+    {
+      "file": "Note/Pic/SOS 编码格式.png",
+      "height": 350,
+      "id": "a86bc5c2fd94595b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2620,
+      "y": -5901
+    },
+    {
+      "file": "Note/Pic/Message Requests.png",
+      "height": 187,
+      "id": "01a04be5a5e3dbc0",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -1640,
+      "y": -633
+    },
+    {
+      "file": "Note/Pic/Type 字段解释.png",
+      "height": 186,
+      "id": "244d9a58a58eaa13",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 800,
+      "y": -89
+    },
+    {
+      "file": "Note/Pic/Format 和 Type 字段含义.png",
+      "height": 399,
+      "id": "26e2ce10987483c6",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 221,
+      "x": 960,
+      "y": -2258
+    },
+    {
+      "file": "Note/Pic/3、4DW Memory 请求 Header 格式.png",
+      "height": 338,
+      "id": "2df1ed63d42d05bf",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -1640,
+      "y": -1496
+    },
+    {
+      "file": "Note/Pic/3DW IO 请求 Header 格式.png",
+      "height": 268,
+      "id": "d84df02aaf83efd1",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -1640,
+      "y": -1840
+    },
+    {
+      "file": "Note/Pic/Configuartion Requests.png",
+      "height": 333,
+      "id": "2a0f67d5fff7daa4",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -1640,
+      "y": -1073
+    },
+    {
+      "file": "Note/Pic/PCIe TLP 报文类型.png",
+      "height": 355,
+      "id": "a2b3b236db0223eb",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": -937,
+      "y": -1449
+    },
+    {
+      "file": "Note/Pic/DLLP 报文格式.png",
+      "height": 235,
+      "id": "497b3dd02d952eac",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -1220,
+      "y": -3420
+    },
+    {
+      "file": "Note/Pic/功耗管理报文.png",
+      "height": 121,
+      "id": "571a80669b95a20d",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -240,
+      "y": -3461
+    },
+    {
+      "file": "Note/Pic/Vendor 自定义 DLLP.png",
+      "height": 115,
+      "id": "1bc4a235052b8b46",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -240,
+      "y": -2880
+    },
+    {
+      "file": "Note/Pic/Pasted image 20250221091940.png",
+      "height": 400,
+      "id": "b290826bc4a85edf",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 389,
+      "x": -200,
+      "y": -4714
+    },
+    {
+      "file": "Note/Pic/PCIe 128b、130b 数据块编码格式.png",
+      "height": 171,
+      "id": "3973c54a02d83e6f",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -912,
+      "y": -5904
+    },
+    {
+      "file": "Note/Pic/有序块编码格式.png",
+      "height": 153,
+      "id": "ef08532113fc20f9",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": -912,
+      "y": -5664
+    },
+    {
+      "file": "Note/Pic/发送端的 Elements.png",
+      "height": 400,
+      "id": "cd77ab927af48a47",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 328,
+      "x": -740,
+      "y": -4960
+    },
+    {
+      "file": "Note/Pic/Flow Control DLLP 字段.png",
+      "height": 362,
+      "id": "b4a3d28e0b1cc44a",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 240,
+      "y": -3280
+    },
+    {
+      "file": "Note/Pic/Ack、Nak 机制结构图.png",
+      "height": 263,
+      "id": "a793806e6e19783f",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -1220,
+      "y": -4600
+    },
+    {
+      "file": "Note/Pic/Ack、Nak 字段.png",
+      "height": 326,
+      "id": "b725c8ae4319db59",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 240,
+      "y": -3879
+    },
+    {
+      "file": "Note/Pic/接收端的 Elements.png",
+      "height": 411,
+      "id": "3d87166010869d2e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 328,
+      "x": -740,
+      "y": -4520
+    },
+    {
+      "file": "Note/Pic/Type 1 Non-Prefetchable 寄存器范围示例.png",
+      "height": 400,
+      "id": "b323f636f82bdca5",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 393,
+      "x": 130,
+      "y": 920
+    },
+    {
+      "file": "Note/Pic/IO 地址范围.png",
+      "height": 383,
+      "id": "d3a444b0d3136d77",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 130,
+      "y": 1400
+    },
+    {
+      "file": "Note/Pic/8b、10b 编码.png",
+      "height": 193,
+      "id": "a0a4fec2ff179ca2",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -432,
+      "y": -6500
+    },
+    {
+      "file": "Note/Pic/有序集.png",
+      "height": 306,
+      "id": "7eb2ab0356e4f3dc",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -412,
+      "y": -5740
+    },
+    {
+      "file": "Note/Pic/Type0、Type1 Spec 格式.png",
+      "height": 344,
+      "id": "12376e2e97490786",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 480,
+      "x": -1080,
+      "y": 748
+    },
+    {
+      "file": "Note/Pic/Type0 Type1 使用范围.png",
+      "height": 474,
+      "id": "bbed89298c6a24b7",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 480,
+      "x": -1720,
+      "y": 956
+    },
+    {
+      "file": "Note/Pic/Type BAR 格式.png",
+      "height": 415,
+      "id": "72a0e86a5bbb028b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 480,
+      "x": -1720,
+      "y": 457
+    },
+    {
+      "file": "Note/Pic/K 字符.png",
+      "height": 326,
+      "id": "74c0661ebfca8e47",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -912,
+      "y": -6404
+    },
+    {
+      "file": "Note/Pic/Type 1 Prefetchable 寄存器范围示例.png",
+      "height": 343,
+      "id": "5a639a5f756112ed",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 130,
+      "y": 492
+    },
+    {
+      "file": "Note/Pic/建立 Base 和 Limit 寄存器值拓扑示例.png",
+      "height": 368,
+      "id": "c89fc2eb7019f9a9",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -480,
+      "y": 736
+    },
+    {
+      "file": "Note/Pic/PCIe 报文类型.png",
+      "height": 192,
+      "id": "cb639fa9d1e0f29e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -3980,
+      "y": 628
+    },
+    {
+      "height": 60,
+      "id": "b914e98c1536937e",
+      "styleAttributes": {
+      },
+      "text": "Memory Write 操作 Posted 传输方式带来的收益大于不确定性，并且出现 error 不会导致设备;\nIO 和配置空间读写出现 error 大部分会导致设备行为，因此需要确定是否正确操作；",
+      "type": "text",
+      "width": 640,
+      "x": -4020,
+      "y": 928
+    },
+    {
+      "file": "Note/Pic/最终地址路由示例.png",
+      "height": 384,
+      "id": "6bc0cfa4bf30b7c5",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 471,
+      "x": 1240,
+      "y": 928
+    },
+    {
+      "height": 60,
+      "id": "fca55b458009dfdb",
+      "styleAttributes": {
+      },
+      "text": "1、EP 中未使用的 BAR，可以设置 base 大于 Limit。\n2、Type 1 中也包含两个 BAR，可以请求地址空间。",
+      "type": "text",
+      "width": 380,
+      "x": 1286,
+      "y": 800
+    },
+    {
+      "file": "Note/Pic/Type 1 Non-Prefetchable 寄存器字段含义.png",
+      "height": 208,
+      "id": "bf8aa4a269b3e60e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 620,
+      "y": 1016
+    },
+    {
+      "file": "Note/Pic/IO Base、Limit 寄存器字段含义.png",
+      "height": 324,
+      "id": "ed9d908f927b7883",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 620,
+      "y": 1430
+    },
+    {
+      "file": "Note/Pic/Type 1 Prefetchable 寄存器字段含义.png",
+      "height": 366,
+      "id": "4bf7e8fc592ecc63",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 620,
+      "y": 481
+    },
+    {
+      "file": "Note/Pic/地址路由.png",
+      "height": 319,
+      "id": "294f0a823c678d28",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 295,
+      "y": -500
+    },
+    {
+      "file": "Note/Pic/Post 和 Non-Post 事务.png",
+      "height": 328,
+      "id": "5c1a5cc451ead6f0",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -3500,
+      "y": 540
+    },
+    {
+      "file": "Note/Pic/隐式路由关键字段.png",
+      "height": 208,
+      "id": "190d842ab3c74f46",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 295,
+      "y": -100
+    },
+    {
+      "file": "Note/Pic/INIT1 流控 DLLP 格式及内容.png",
+      "height": 239,
+      "id": "bf72c6f8bd4c9d21",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -3620,
+      "y": -740
+    },
+    {
+      "file": "Note/Pic/备在 DL_Init 状态下发送 InitFC1 DLLP.png",
+      "height": 384,
+      "id": "47b520e5787348ee",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -3100,
+      "y": -812
+    },
+    {
+      "file": "Note/Pic/FC 值已经寄存-接下来发送 InitFC2 并报告 DL_Up.png",
+      "height": 266,
+      "id": "bb738a7c52d2aa38",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -3100,
+      "y": -301
+    },
+    {
+      "file": "Note/Pic/DLCMSM 数据链路控制与管理状态机.png",
+      "height": 400,
+      "id": "d987e5fe952a451e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 375,
+      "x": -4140,
+      "y": -821
+    },
+    {
+      "file": "Note/Pic/TLP 路由三种方法.png",
+      "height": 157,
+      "id": "49a9bc980927f81f",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -320,
+      "y": -790
+    },
+    {
+      "file": "Note/Pic/ID 路由方式.png",
+      "height": 315,
+      "id": "82e36dd5451cb48a",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 295,
+      "y": -869
+    }
+  ]
+}

@@ -1,0 +1,1563 @@
+{
+  "edges": [
+    {
+      "fromNode": "0fbf0cf3cd7557b5",
+      "fromSide": "right",
+      "id": "5dfefd32882ffec4",
+      "styleAttributes": {
+      },
+      "toNode": "63b8d6575381f84e",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "fecf8c50fdd9129b",
+      "fromSide": "right",
+      "id": "68c07ba6e757a8aa",
+      "styleAttributes": {
+      },
+      "toNode": "0d01e2d091c661b0",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5a580a70505ddb69",
+      "fromSide": "right",
+      "id": "c5de06cf130e5a9e",
+      "styleAttributes": {
+      },
+      "toNode": "1faae37da8c43e27",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5a580a70505ddb69",
+      "fromSide": "right",
+      "id": "b3a99ef1b6ee6a42",
+      "styleAttributes": {
+      },
+      "toNode": "cf1dedf0452813b0",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "8ad17b43adca58ea",
+      "fromSide": "right",
+      "id": "f074addded49257c",
+      "styleAttributes": {
+      },
+      "toNode": "5a580a70505ddb69",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "8ad17b43adca58ea",
+      "fromSide": "right",
+      "id": "c6a141a710af95ca",
+      "styleAttributes": {
+      },
+      "toNode": "b624b02952f81cdb",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "8ad17b43adca58ea",
+      "fromSide": "right",
+      "id": "123da0b24716d5ad",
+      "styleAttributes": {
+      },
+      "toNode": "2e97613a6aa66e67",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "2e97613a6aa66e67",
+      "fromSide": "right",
+      "id": "93c7ee0af8c54489",
+      "styleAttributes": {
+      },
+      "toNode": "6ba9af39f38875dd",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "2e97613a6aa66e67",
+      "fromSide": "right",
+      "id": "f82b67e4c0b3c31c",
+      "styleAttributes": {
+      },
+      "toNode": "54c0dda806b4dead",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "8ad17b43adca58ea",
+      "fromSide": "right",
+      "id": "7cd8276ec5ccc6a0",
+      "styleAttributes": {
+      },
+      "toNode": "768ee73c41bb9bd2",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "768ee73c41bb9bd2",
+      "fromSide": "right",
+      "id": "829e996978bdc648",
+      "styleAttributes": {
+      },
+      "toNode": "32c8c5425d9fff55",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "4b1e3bc513c32b00",
+      "styleAttributes": {
+      },
+      "toNode": "c73bff3a75e85000",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "414d19aee64579b9",
+      "styleAttributes": {
+      },
+      "toNode": "b21e53f62763e67d",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "2af38e6d03d6fd64",
+      "styleAttributes": {
+      },
+      "toNode": "e0780ae14e85a721",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "ba4893ab159f6c40",
+      "styleAttributes": {
+      },
+      "toNode": "e0d102d6272aa7db",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "f20f4ab3538f6a6f",
+      "fromSide": "right",
+      "id": "9f4dc0a2beb6c480",
+      "styleAttributes": {
+      },
+      "toNode": "02fb0bb2f8fcf549",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "f20f4ab3538f6a6f",
+      "fromSide": "right",
+      "id": "940a22f46ee25327",
+      "styleAttributes": {
+      },
+      "toNode": "5f2cee90911fcde2",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5f2cee90911fcde2",
+      "fromSide": "right",
+      "id": "22827e75bb184401",
+      "styleAttributes": {
+      },
+      "toNode": "22f37e7ab8a38c96",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5f2cee90911fcde2",
+      "fromSide": "right",
+      "id": "f8e2bab8887abb05",
+      "styleAttributes": {
+      },
+      "toNode": "bf3420ec4400ce85",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "c07fde19c58e2f4e",
+      "styleAttributes": {
+      },
+      "toNode": "f20f4ab3538f6a6f",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "35548731a02df5d9",
+      "styleAttributes": {
+      },
+      "toNode": "7ceb639c94fe34c8",
+      "toSide": "left"
+    },
+    {
+      "color": "5",
+      "fromNode": "f20f4ab3538f6a6f",
+      "fromSide": "right",
+      "id": "80022a8e4aecbc90",
+      "styleAttributes": {
+      },
+      "toNode": "f200362db0367dba",
+      "toSide": "left"
+    },
+    {
+      "color": "5",
+      "fromNode": "7ceb639c94fe34c8",
+      "fromSide": "right",
+      "id": "70a8746d526b39dc",
+      "styleAttributes": {
+      },
+      "toNode": "f200362db0367dba",
+      "toSide": "left"
+    },
+    {
+      "color": "5",
+      "fromNode": "a7a1878addf31c62",
+      "fromSide": "right",
+      "id": "04c07e70167ce43e",
+      "styleAttributes": {
+      },
+      "toNode": "f200362db0367dba",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "a7a1878addf31c62",
+      "fromSide": "right",
+      "id": "5ee1bc73216ee37e",
+      "styleAttributes": {
+      },
+      "toNode": "4335e0419f76b78b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "396b830cff245592",
+      "fromSide": "right",
+      "id": "193c5c4d771c3f8a",
+      "styleAttributes": {
+      },
+      "toNode": "1da84601b3193c93",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "5821bf9cbd2e2e54",
+      "fromSide": "right",
+      "id": "48879bc40bb242dc",
+      "styleAttributes": {
+      },
+      "toNode": "1da84601b3193c93",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "ab9cf51103cc8ba6",
+      "fromSide": "right",
+      "id": "6d91ecdf4e001d8d",
+      "styleAttributes": {
+      },
+      "toNode": "1da84601b3193c93",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d1830cc0cc4997b6",
+      "fromSide": "right",
+      "id": "d33628de0f4a11c4",
+      "styleAttributes": {
+      },
+      "toNode": "1da84601b3193c93",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "e525f49f85042c26",
+      "styleAttributes": {
+      },
+      "toNode": "d1830cc0cc4997b6",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "7d43df0d528a0b2f",
+      "styleAttributes": {
+      },
+      "toNode": "ab9cf51103cc8ba6",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "1509104d1b119124",
+      "styleAttributes": {
+      },
+      "toNode": "5821bf9cbd2e2e54",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "be7c8c5e66fe8005",
+      "styleAttributes": {
+      },
+      "toNode": "396b830cff245592",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "2f4fe8cd4d1c948d",
+      "styleAttributes": {
+      },
+      "toNode": "47190f30c6b6487a",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "3454175117d56260",
+      "styleAttributes": {
+      },
+      "toNode": "087ebc3f484dd3ab",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "00c80957d61971fb",
+      "styleAttributes": {
+      },
+      "toNode": "23d9f1f943588775",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e9d9de85f70d1d3c",
+      "fromSide": "right",
+      "id": "07d87b5968407961",
+      "styleAttributes": {
+      },
+      "toNode": "b8be53b5736e0d37",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "47190f30c6b6487a",
+      "fromSide": "right",
+      "id": "d9338b6518d2e2da",
+      "styleAttributes": {
+      },
+      "toNode": "474fd0b381301a2b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "087ebc3f484dd3ab",
+      "fromSide": "right",
+      "id": "b5434573bf84f8a3",
+      "styleAttributes": {
+      },
+      "toNode": "474fd0b381301a2b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "23d9f1f943588775",
+      "fromSide": "right",
+      "id": "993dc0ae6eb8dc18",
+      "styleAttributes": {
+      },
+      "toNode": "474fd0b381301a2b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "b8be53b5736e0d37",
+      "fromSide": "right",
+      "id": "3be343a7fa2d6d6c",
+      "styleAttributes": {
+      },
+      "toNode": "474fd0b381301a2b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "62389066b18b3bc7",
+      "styleAttributes": {
+      },
+      "toNode": "a7a1878addf31c62",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "e941be1a33abdcfc",
+      "styleAttributes": {
+      },
+      "toNode": "67f5f8afd81aa821",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "d2dfe29355452000",
+      "styleAttributes": {
+      },
+      "toNode": "cd8ac8951dabe779",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "1b5933455a067ee3",
+      "styleAttributes": {
+      },
+      "toNode": "9a2dbe21be20de08",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "0e748f81a92545a3",
+      "styleAttributes": {
+      },
+      "toNode": "57906384ed9376e2",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "db5d957ae7e9a328",
+      "styleAttributes": {
+      },
+      "toNode": "b2f68ce9f1443cef",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "fc8bc7aab07ee032",
+      "styleAttributes": {
+      },
+      "toNode": "58e9b8cffef379e4",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "5c55e4d96543f037",
+      "styleAttributes": {
+      },
+      "toNode": "7ce94cfded71647b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "7ac4a6bebbfc24a5",
+      "fromSide": "right",
+      "id": "6baa844cd94ef2f9",
+      "styleAttributes": {
+      },
+      "toNode": "aced41c7458561cd",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "1da84601b3193c93",
+      "fromSide": "bottom",
+      "id": "8427944a077e2e69",
+      "styleAttributes": {
+      },
+      "toNode": "11bc8cc668d4e43c",
+      "toSide": "top"
+    },
+    {
+      "fromNode": "cec69a176de14cce",
+      "fromSide": "right",
+      "id": "edce83e4ca3f2155",
+      "styleAttributes": {
+      },
+      "toNode": "e7749edd8b773a64",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "e7749edd8b773a64",
+      "fromSide": "right",
+      "id": "e08afc7d6be3342b",
+      "styleAttributes": {
+      },
+      "toNode": "296062cacacb0b83",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d5397019d2cde079",
+      "fromSide": "top",
+      "id": "f4354ec045ca6e1a",
+      "styleAttributes": {
+      },
+      "toNode": "d0c180d33bfd4b0f",
+      "toSide": "bottom"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "8c3070545772a287",
+      "styleAttributes": {
+      },
+      "toNode": "cec69a176de14cce",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "66ec6e3de6d9b5b7",
+      "styleAttributes": {
+      },
+      "toNode": "1f059109a982853a",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "cf171c195b9b545c",
+      "styleAttributes": {
+      },
+      "toNode": "b38c0b938995b6b1",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "7145b9976474b64c",
+      "styleAttributes": {
+      },
+      "toNode": "9a82633e32a656b4",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "19ddfcd090d710e6",
+      "styleAttributes": {
+      },
+      "toNode": "fbd4510060a98739",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "9e520464639c0a58",
+      "styleAttributes": {
+      },
+      "toNode": "2fa617dc9455a65b",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "af801c517d50c7d9",
+      "styleAttributes": {
+      },
+      "toNode": "26d1a66eceee710e",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "8d784ca833e88ca4",
+      "styleAttributes": {
+      },
+      "toNode": "d55d676df42e37bb",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "right",
+      "id": "a488855229cb16eb",
+      "styleAttributes": {
+      },
+      "toNode": "72580d86a4751b60",
+      "toSide": "left"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "left",
+      "id": "4ba43175af1ee2b0",
+      "styleAttributes": {
+      },
+      "toNode": "9e5aff7c9fa9e8f5",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "left",
+      "id": "856db44132958790",
+      "styleAttributes": {
+      },
+      "toNode": "bdf37db2e06328b1",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "left",
+      "id": "8a5ac3ccee383d7e",
+      "styleAttributes": {
+      },
+      "toNode": "f0264133a22b898a",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "left",
+      "id": "91ba87dd63c162df",
+      "styleAttributes": {
+      },
+      "toNode": "9f9cde2a4445fc96",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "left",
+      "id": "4fa593932e3de97f",
+      "styleAttributes": {
+      },
+      "toNode": "a2b9647700704ccf",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "d0c180d33bfd4b0f",
+      "fromSide": "left",
+      "id": "787a43e1a0a3998a",
+      "styleAttributes": {
+      },
+      "toNode": "2be8fb5ab9377622",
+      "toSide": "right"
+    },
+    {
+      "fromNode": "d5397019d2cde079",
+      "fromSide": "bottom",
+      "id": "b02909439c0fdb9f",
+      "toNode": "2439016bbc408f4f",
+      "toSide": "top"
+    },
+    {
+      "fromNode": "d5397019d2cde079",
+      "fromSide": "bottom",
+      "id": "debfcc79d9426470",
+      "toNode": "4863b5c2377d56a2",
+      "toSide": "top"
+    },
+    {
+      "fromNode": "4863b5c2377d56a2",
+      "fromSide": "bottom",
+      "id": "8700993d8201a15b",
+      "toNode": "e3eb5d5d7f29a212",
+      "toSide": "top"
+    }
+  ],
+  "nodes": [
+    {
+      "height": 5455,
+      "id": "d5953d379912708c",
+      "isCollapsed": true,
+      "label": "ARM IP",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 4245,
+      "x": -440,
+      "y": -360
+    },
+    {
+      "file": "Note/Pic/DTE、DCE 模式下接口信号功能.png",
+      "height": 340,
+      "id": "dfac4525b9f3ffee",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -60,
+      "y": 180
+    },
+    {
+      "file": "Note/Pic/UARTDR.png",
+      "height": 255,
+      "id": "c73bff3a75e85000",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 513
+    },
+    {
+      "file": "Note/Pic/UARTRSR、UARTECR.png",
+      "height": 303,
+      "id": "b21e53f62763e67d",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 820
+    },
+    {
+      "file": "Note/Pic/UARTFR.png",
+      "height": 422,
+      "id": "e0780ae14e85a721",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 1160
+    },
+    {
+      "file": "Note/Pic/UARTILPR.png",
+      "height": 87,
+      "id": "e0d102d6272aa7db",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 520,
+      "y": 1620
+    },
+    {
+      "file": "Note/Pic/uart_arm_block.png",
+      "height": 400,
+      "id": "a73cede167120be9",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 365,
+      "x": -425,
+      "y": -339
+    },
+    {
+      "file": "Note/Pic/IrDA SIR ENDEC block.png",
+      "height": 263,
+      "id": "94e58c8ab953ab67",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 0,
+      "y": -271
+    },
+    {
+      "file": "Note/Pic/UARTIBRD.png",
+      "height": 127,
+      "id": "f20f4ab3538f6a6f",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 1740
+    },
+    {
+      "file": "Note/Pic/波特率寄存器计算方法.png",
+      "height": 105,
+      "id": "5f2cee90911fcde2",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 1040,
+      "y": 1762
+    },
+    {
+      "file": "Note/Pic/UARTFBRD.png",
+      "height": 122,
+      "id": "7ceb639c94fe34c8",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 520,
+      "y": 1900
+    },
+    {
+      "file": "Note/Pic/波特率误差计算.png",
+      "height": 81,
+      "id": "02fb0bb2f8fcf549",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 1040,
+      "y": 1920
+    },
+    {
+      "file": "Note/Pic/UARTCLK=7.3728MHz分频比计算.png",
+      "height": 322,
+      "id": "22f37e7ab8a38c96",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1540,
+      "y": 1546
+    },
+    {
+      "file": "Note/Pic/UARTCLK=4MHz分频比计算.png",
+      "height": 205,
+      "id": "bf3420ec4400ce85",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1540,
+      "y": 1920
+    },
+    {
+      "height": 298,
+      "id": "f200362db0367dba",
+      "styleAttributes": {
+      },
+      "text": "此三个寄存器实际上是一个寄存器---UARTLCR，每次更新寄存器时，都需要对 UARTLCR_H 执行写操作。\n\n在以下情况下，不得更改 UARTLCR_H、UARTIBRD 和 UARTFBRD 寄存器：\n- 当 UART 启用时；\n- 当 UART 被编程为禁用状态，且正在完成传输或接收操作时。\n\n 在以下条件下，不保证 FIFO 的完整性：\n- 在 BRK 位被置位之后；\n- 如果软件在 FIFO 中有数据传输期间禁用 UART，然后再重新启用它。",
+      "type": "text",
+      "width": 400,
+      "x": 1040,
+      "y": 2022
+    },
+    {
+      "file": "Note/Pic/UARTLCR_H.png",
+      "height": 431,
+      "id": "a7a1878addf31c62",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 2060
+    },
+    {
+      "file": "Note/Pic/校验位真值表.png",
+      "height": 220,
+      "id": "4335e0419f76b78b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1040,
+      "y": 2381
+    },
+    {
+      "file": "Note/Pic/UARTCR.png",
+      "height": 403,
+      "id": "67f5f8afd81aa821",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 2520
+    },
+    {
+      "file": "Note/Pic/UARTCR 1.png",
+      "height": 223,
+      "id": "cd8ac8951dabe779",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 2960
+    },
+    {
+      "file": "Note/Pic/寄存器表单1.png",
+      "height": 222,
+      "id": "e9d9de85f70d1d3c",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2240,
+      "y": 2256
+    },
+    {
+      "file": "Note/Pic/RX_LOW_LEVEL_CNT.png",
+      "height": 108,
+      "id": "75fa792a0ce9d7ca",
+      "type": "file",
+      "width": 399,
+      "x": 2440,
+      "y": -200
+    },
+    {
+      "file": "Note/Pic/Pasted image 20250224171945.png",
+      "height": 108,
+      "id": "486f9aad055746bd",
+      "type": "file",
+      "width": 399,
+      "x": 2440,
+      "y": -200
+    },
+    {
+      "file": "Note/Pic/RX_LOW_LEVEL_CNT.png",
+      "height": 108,
+      "id": "789b18fbfb111d89",
+      "type": "file",
+      "width": 399,
+      "x": 2440,
+      "y": -200
+    },
+    {
+      "file": "Note/Pic/IP_VERSION.png",
+      "height": 69,
+      "id": "4b61258458997715",
+      "type": "file",
+      "width": 400,
+      "x": 2440,
+      "y": -20
+    },
+    {
+      "file": "Note/Pic/UARTIFLS.png",
+      "height": 246,
+      "id": "9a2dbe21be20de08",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 3220
+    },
+    {
+      "file": "Note/Pic/寄存器表单.png",
+      "height": 400,
+      "id": "7ac4a6bebbfc24a5",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 387,
+      "x": -40,
+      "y": 3343
+    },
+    {
+      "file": "Note/Pic/UARTPeriphlD3 Register.png",
+      "height": 124,
+      "id": "d1830cc0cc4997b6",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2800,
+      "y": 2194
+    },
+    {
+      "file": "Note/Pic/UARTPCelllD0 Register.png",
+      "height": 118,
+      "id": "47190f30c6b6487a",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 2800,
+      "y": 2419
+    },
+    {
+      "file": "Note/Pic/UARTPCelllD1 Register.png",
+      "height": 123,
+      "id": "087ebc3f484dd3ab",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2800,
+      "y": 2574
+    },
+    {
+      "file": "Note/Pic/UARTPCelllD2 Register.png",
+      "height": 114,
+      "id": "23d9f1f943588775",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2800,
+      "y": 2734
+    },
+    {
+      "file": "Note/Pic/UARTPCelllD3 Register.png",
+      "height": 117,
+      "id": "b8be53b5736e0d37",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2800,
+      "y": 2894
+    },
+    {
+      "file": "Note/Pic/UARTPeriphlD0 Register.png",
+      "height": 122,
+      "id": "396b830cff245592",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2800,
+      "y": 1554
+    },
+    {
+      "file": "Note/Pic/UARTPeriphlD1 Register.png",
+      "height": 152,
+      "id": "5821bf9cbd2e2e54",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2800,
+      "y": 1714
+    },
+    {
+      "file": "Note/Pic/UARTPeriphlD2 Register.png",
+      "height": 253,
+      "id": "ab9cf51103cc8ba6",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2800,
+      "y": 1894
+    },
+    {
+      "file": "Note/Pic/UARTIMSC.png",
+      "height": 408,
+      "id": "57906384ed9376e2",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 3500
+    },
+    {
+      "file": "Note/Pic/UARTRIS.png",
+      "height": 296,
+      "id": "b2f68ce9f1443cef",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 3940
+    },
+    {
+      "file": "Note/Pic/UARTPCelll.png",
+      "height": 139,
+      "id": "474fd0b381301a2b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 3380,
+      "y": 2636
+    },
+    {
+      "file": "Note/Pic/ARM UARTPeriphID 字段含义.png",
+      "height": 75,
+      "id": "11bc8cc668d4e43c",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 398,
+      "x": 3380,
+      "y": 2060
+    },
+    {
+      "file": "Note/Pic/UARTPeriphlD Register.png",
+      "height": 180,
+      "id": "1da84601b3193c93",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 3380,
+      "y": 1804
+    },
+    {
+      "file": "Note/Pic/UARTMIS.png",
+      "height": 347,
+      "id": "58e9b8cffef379e4",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 4260
+    },
+    {
+      "file": "Note/Pic/UARTICR.png",
+      "height": 291,
+      "id": "7ce94cfded71647b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 4640
+    },
+    {
+      "file": "Note/Pic/UARTDMACR.png",
+      "height": 116,
+      "id": "aced41c7458561cd",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 520,
+      "y": 4960
+    },
+    {
+      "height": 2722,
+      "id": "05aae3a01ed5e064",
+      "isCollapsed": true,
+      "label": "USART 寄存器和接口信号",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 2507,
+      "x": 1120,
+      "y": -3140
+    },
+    {
+      "height": 1596,
+      "id": "9779f4741360b458",
+      "label": "0x18-0x80",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 1227,
+      "x": 2380,
+      "y": -3120
+    },
+    {
+      "height": 1566,
+      "id": "ffcb079ec0ef91a7",
+      "label": "0x00-0x14",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 440,
+      "x": 1140,
+      "y": -3090
+    },
+    {
+      "height": 1022,
+      "id": "7e2594694ae593c9",
+      "label": "Internal Chip Bus",
+      "type": "group",
+      "width": 440,
+      "x": 2040,
+      "y": -1460
+    },
+    {
+      "file": "Note/Pic/UART_DIV.png",
+      "height": 218,
+      "id": "72580d86a4751b60",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -3069
+    },
+    {
+      "file": "Note/Pic/UART_SETUP_1.png",
+      "height": 400,
+      "id": "e7749edd8b773a64",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 301,
+      "x": 2860,
+      "y": -2944
+    },
+    {
+      "file": "Note/Pic/UART_SETUP2.png",
+      "height": 400,
+      "id": "296062cacacb0b83",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 307,
+      "x": 3280,
+      "y": -2944
+    },
+    {
+      "file": "Note/Pic/UART_SETUP.png",
+      "height": 127,
+      "id": "cec69a176de14cce",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -2808
+    },
+    {
+      "file": "Note/Pic/USART_RX_SIZE.png",
+      "height": 98,
+      "id": "1f059109a982853a",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -2508
+    },
+    {
+      "file": "Note/Pic/UART_TX_DATASIZE.png",
+      "height": 120,
+      "id": "d55d676df42e37bb",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -1668
+    },
+    {
+      "file": "Note/Pic/USART_TX_SIZE.png",
+      "height": 100,
+      "id": "b38c0b938995b6b1",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -2348
+    },
+    {
+      "file": "Note/Pic/USART 寄存器地址偏移量.png",
+      "height": 213,
+      "id": "d0c180d33bfd4b0f",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 1780,
+      "y": -2248
+    },
+    {
+      "file": "Note/Pic/USART Functional Signal Interface.png",
+      "height": 221,
+      "id": "2439016bbc408f4f",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1500,
+      "y": -1450
+    },
+    {
+      "file": "Note/Pic/USART block diagram.png",
+      "height": 215,
+      "id": "d5397019d2cde079",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 1780,
+      "y": -1860
+    },
+    {
+      "file": "Note/Pic/ICB-Register Configuration Signal Interface.png",
+      "height": 560,
+      "id": "4863b5c2377d56a2",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2060,
+      "y": -1450
+    },
+    {
+      "file": "Note/Pic/ICB-Regsister Configuration Signal Interface1.png",
+      "height": 372,
+      "id": "e3eb5d5d7f29a212",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2060,
+      "y": -840
+    },
+    {
+      "file": "Note/Pic/USART_RX_IDLE.png",
+      "height": 69,
+      "id": "9a82633e32a656b4",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -2188
+    },
+    {
+      "file": "Note/Pic/USART_RX_WM.png",
+      "height": 70,
+      "id": "fbd4510060a98739",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 398,
+      "x": 2400,
+      "y": -2068
+    },
+    {
+      "file": "Note/Pic/USART_RX_FIFO_LEFT_ENTRY.png",
+      "height": 80,
+      "id": "2fa617dc9455a65b",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -1948
+    },
+    {
+      "file": "Note/Pic/USART_TX_FIFO_LEFT_ENTRY.png",
+      "height": 79,
+      "id": "26d1a66eceee710e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 2400,
+      "y": -1808
+    },
+    {
+      "file": "Note/Pic/UART_TXCTRL.png",
+      "height": 231,
+      "id": "f0264133a22b898a",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1160,
+      "y": -2791
+    },
+    {
+      "file": "Note/Pic/UART_RXCTRL.png",
+      "height": 181,
+      "id": "9f9cde2a4445fc96",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1160,
+      "y": -2511
+    },
+    {
+      "file": "Note/Pic/UART_INT_EN.png",
+      "height": 204,
+      "id": "a2b9647700704ccf",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1160,
+      "y": -2271
+    },
+    {
+      "file": "Note/Pic/UART_STATUS.png",
+      "height": 488,
+      "id": "2be8fb5ab9377622",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1160,
+      "y": -2033
+    },
+    {
+      "file": "Note/Pic/UART_TXDATA.png",
+      "height": 90,
+      "id": "9e5aff7c9fa9e8f5",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 1160,
+      "y": -3071
+    },
+    {
+      "file": "Note/Pic/UART_RXDATA.png",
+      "height": 89,
+      "id": "bdf37db2e06328b1",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 1160,
+      "y": -2931
+    },
+    {
+      "height": 1871,
+      "id": "ddae2efb5aa3f758",
+      "label": "USART 功能介绍",
+      "styleAttributes": {
+      },
+      "type": "group",
+      "width": 1440,
+      "x": -460,
+      "y": -3140
+    },
+    {
+      "height": 141,
+      "id": "fecf8c50fdd9129b",
+      "styleAttributes": {
+      },
+      "text": "1. 开始位采样在 8 bit；\n2. 开始位采样规则：\n\t1. 两次采样 0：当第一次检测到 0 ，紧跟第二位也为 0;\n\t2. 7、8、9 位至少两个位 0。",
+      "type": "text",
+      "width": 400,
+      "x": 320,
+      "y": -3962
+    },
+    {
+      "file": "Note/Pic/采样数据噪声检测.png",
+      "height": 212,
+      "id": "63b8d6575381f84e",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 1280,
+      "y": -3812
+    },
+    {
+      "file": "Note/Pic/Start bit detection.png",
+      "height": 162,
+      "id": "0d01e2d091c661b0",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 800,
+      "y": -4000
+    },
+    {
+      "file": "Note/Pic/Data Sampling.png",
+      "height": 150,
+      "id": "0fbf0cf3cd7557b5",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 800,
+      "y": -3781
+    },
+    {
+      "file": "Note/Pic/USART interrupt mapping diagram.png",
+      "height": 399,
+      "id": "32c8c5425d9fff55",
+      "type": "file",
+      "width": 354,
+      "x": 583,
+      "y": -1692
+    },
+    {
+      "file": "Note/Pic/USART 同步发数据举例.png",
+      "height": 131,
+      "id": "5a580a70505ddb69",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 80,
+      "y": -2135
+    },
+    {
+      "file": "Note/Pic/USART 数据时序图（8bit）.png",
+      "height": 261,
+      "id": "1faae37da8c43e27",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 560,
+      "y": -2380
+    },
+    {
+      "file": "Note/Pic/USART 数据时序图（9bit）.png",
+      "height": 247,
+      "id": "cf1dedf0452813b0",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 560,
+      "y": -2040
+    },
+    {
+      "file": "Note/Pic/USART 实现功能.png",
+      "height": 135,
+      "id": "8ad17b43adca58ea",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": -440,
+      "y": -2760
+    },
+    {
+      "file": "Note/Pic/Hardware Flow Control.png",
+      "height": 248,
+      "id": "2e97613a6aa66e67",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 80,
+      "y": -3040
+    },
+    {
+      "file": "Note/Pic/CTS flow control.png",
+      "height": 216,
+      "id": "54c0dda806b4dead",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 540,
+      "y": -2900
+    },
+    {
+      "file": "Note/Pic/USART dma 传输流程图.png",
+      "height": 93,
+      "id": "b624b02952f81cdb",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 80,
+      "y": -2560
+    },
+    {
+      "file": "Note/Pic/UART_DIV.png",
+      "height": 218,
+      "id": "022a5a9fe114d54c",
+      "type": "file",
+      "width": 400,
+      "x": 560,
+      "y": -2980
+    },
+    {
+      "file": "Note/Pic/RTS flow control.png",
+      "height": 169,
+      "id": "6ba9af39f38875dd",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 399,
+      "x": 540,
+      "y": -3124
+    },
+    {
+      "file": "Note/Pic/USART Interruput Requests.png",
+      "height": 305,
+      "id": "768ee73c41bb9bd2",
+      "styleAttributes": {
+      },
+      "type": "file",
+      "width": 400,
+      "x": 80,
+      "y": -1645
+    }
+  ]
+}

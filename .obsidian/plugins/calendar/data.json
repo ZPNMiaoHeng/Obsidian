@@ -1,0 +1,36 @@
+{
+  "shouldConfirmBeforeCreate": true,
+  "localeOverride": "zh-cn",
+  "weekStart": "monday",
+  "showWeeklyNote": false,
+  "sourceSettings": {
+    "wordCount": {
+      "color": "#ebcb8b",
+      "display": "none",
+      "wordsPerDot": 250
+    },
+    "tasks": {
+      "color": "#d08770",
+      "display": "calendar-and-menu",
+      "maxIncompleteTaskDots": 5
+    },
+    "links": {
+      "color": "#a3be8c",
+      "display": "menu"
+    },
+    "backlinks": {
+      "color": "#5e81ac",
+      "display": "menu"
+    },
+    "zettels": {
+      "color": "#b48ead",
+      "display": "calendar-and-menu"
+    },
+    "emoji-tags": {
+      "display": "none"
+    }
+  },
+  "weeklyNoteFormat": "gggg-[W]ww",
+  "weeklyNoteFolder": "Note/Weekly",
+  "weeklyNoteTemplate": ""
+}

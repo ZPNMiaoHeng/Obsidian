@@ -1,0 +1,24 @@
+- AXI、DFI、POI、端口IO、子模块IO；
+- 时钟、复位信号；
+- dfi2poi_wr.v:
+	- curr_state;
+	- wr_en
+	- wr_mask_en
+	- store_en；
+	- wrDataMask_t；
+	- wrData_t；
+	- rd_start；
+	- rd_end；
+- dfi2poi_map.v:
+	- opi_bit_single;
+- dfi2poi_ca.v:
+	- cmd_valid;
+	- ![[Pasted image 20241119180137.png]]
+	- [?] localparam:![[Pasted image 20241119180425.png]]
+	- dfi_bank_valid;
+	- dfi_address_valid_bit;
+	- dfi_ca_en;
+	- dfi_cmd_read_en;
+	- dfi_cmd_act_en;
+	- cnt_en;
+	- cnt_clear;

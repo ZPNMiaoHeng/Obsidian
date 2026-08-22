@@ -1,0 +1,2 @@
+- [ ] 解复位后，等待软件初始化，软件初始化完成后，clear_done、initial_done拉高；
+- [ ] clear_en 脉冲；

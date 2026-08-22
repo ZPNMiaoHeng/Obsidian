@@ -1,0 +1,52 @@
+{
+  "snapStepMinutes": 10,
+  "progressIndicator": "bar",
+  "showTaskNotification": true,
+  "zoomLevel": 2,
+  "timelineIcon": "blocks",
+  "endLabel": "All done",
+  "startHour": 9,
+  "timelineDateFormat": "YYYY-MM-DD",
+  "centerNeedle": true,
+  "plannerHeading": "Day planner",
+  "plannerHeadingLevel": 1,
+  "timelineColored": true,
+  "timelineStartColor": "#006466",
+  "timelineEndColor": "#4d194d",
+  "timestampFormat": "HH:mm",
+  "hourFormat": "H",
+  "dataviewSource": "\"Note/Daily\"",
+  "extendDurationUntilNext": false,
+  "defaultDurationMinutes": 30,
+  "minimalDurationMinutes": 10,
+  "showTimestampInTaskBlock": true,
+  "showUncheduledTasks": true,
+  "showUnscheduledNestedTasks": true,
+  "showNow": true,
+  "showNext": true,
+  "pluginVersion": "0.27.0",
+  "showCompletedTasks": true,
+  "showSubtasksInTaskBlocks": true,
+  "icals": [
+    {
+      "name": "",
+      "email": "",
+      "url": "",
+      "color": "#1582c6"
+    }
+  ],
+  "colorOverrides": [
+    {
+      "text": "#important",
+      "darkModeColor": "#6e3737",
+      "color": "#ffa1a1"
+    }
+  ],
+  "releaseNotes": true,
+  "taskStatusOnCreation": " ",
+  "eventFormatOnCreation": "task",
+  "sortTasksInPlanAfterEdit": false,
+  "firstDayOfWeek": "monday",
+  "multiDayRange": "work-week",
+  "showTimeTracker": false
+}
