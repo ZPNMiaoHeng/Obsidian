@@ -1,15 +1,55 @@
-#todo
-# Day planner
+---
+date: {{date:YYYY-MM-DD}}
+tags:
+  - 日记
+  - todo
+status: 进行中
+---
+
+# 📅 {{date:YYYY-MM-DD}}
+
+> 🧭 昨日：`= "[[" + dateformat(this.file.day - dur(1 day), "YYYY-MM-DD") + "|←]]"` ｜ `= dateformat(this.file.day, "EEEE")` ｜ 明日：`= "[[" + dateformat(this.file.day + dur(1 day), "YYYY-MM-DD") + "|→]]"`
+
+## 🎯 今日要事（最多 3 件）
+- [ ] 
+- [ ] 
 - [ ] 
 
- 
+# Day planner
+- [ ] 
+%% 时间轴格式：- [ ] 09:00 - 09:30 事项（Day Planner 插件按 HH:mm 自动排布）%%
+
 ---
-# 短期要做的事情
+
+## 🔖 短期要做的事情
 - [[Study]]
 - [[project|pro]]
 
----
-# 问题记录
+## 📝 问题记录
+- 现象：
+- 定位过程：
+- 结论 / 关联笔记：
 
+## 🧠 今日收获
+- 
+
+## 🌙 晚间回顾
+- ✅ 完成情况：
+- ⚠️ 遗留事项：
+- 🔭 明日计划：
 
 ---
+
+## ⏳ 遗留未完成（近 7 天自动汇总）
+```dataview
+TASK FROM "Note/Daily"
+WHERE !completed AND file.day < date(today) AND file.day >= date(today) - dur(7 days)
+SORT file.day ASC
+```
+
+%% 使用说明：
+- 本模板由「日记」核心插件自动套用，日期占位符会被替换为当天日期（无需 Templater）；
+- `# Day planner` 是 Day Planner 插件识别的固定标题，请勿改名或改变级别；
+- 文件自带 `todo` 标签（frontmatter），待办聚合插件会自动收集其中的任务；
+- 未完成任务会被首页与周记的 Dataview 自动汇总。
+%%

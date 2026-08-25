@@ -152,6 +152,12 @@
       },
       "zotlit": {
         "startupType": "disabled"
+      },
+      "mimocode": {
+        "startupType": "disabled"
+      },
+      "sidebar-mimocode": {
+        "startupType": "disabled"
       }
     }
   }

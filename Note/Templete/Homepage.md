@@ -64,7 +64,7 @@ TASK FROM "Note/Daily" WHERE !completed AND file.day < date(today) AND file.day 
 ```dataview
 
 TABLE WITHOUT ID file.link AS "周记", dateformat(file.mtime, "MM-dd HH:mm") AS "最近更新"
-WHERE file.name = dateformat(date(today), "yyyy-'W'ww")
+WHERE file.name = dateformat(date(today), "kkkk-'W'WW")
 
 ```
 ```dataviewjs
