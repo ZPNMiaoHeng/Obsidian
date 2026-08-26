@@ -2,8 +2,8 @@
   "snapStepMinutes": 10,
   "progressIndicator": "bar",
   "showTaskNotification": true,
-  "zoomLevel": 2,
-  "timelineIcon": "blocks",
+  "zoomLevel": 1,
+  "timelineIcon": "calendar-with-checkmark",
   "endLabel": "All done",
   "startHour": 9,
   "timelineDateFormat": "YYYY-MM-DD",
@@ -42,7 +42,7 @@
       "color": "#ffa1a1"
     }
   ],
-  "releaseNotes": true,
+  "releaseNotes": false,
   "taskStatusOnCreation": " ",
   "eventFormatOnCreation": "task",
   "sortTasksInPlanAfterEdit": false,
