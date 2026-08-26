@@ -24757,6 +24757,120 @@ var McpServerManager = class {
   }
 };
 
+// src/providers/mimo/history/mimoTranscriptStore.ts
+var MIMO_TRANSCRIPT_VERSION = 1;
+function sanitizeTranscriptPathSegment(value) {
+  const sanitized = value.replace(/[^A-Za-z0-9._-]/g, "_");
+  return sanitized.length > 0 ? sanitized : "unknown";
+}
+function buildMimoTranscriptPath(configDir, pluginId, conversationId) {
+  const safeConfigDir = configDir.replace(/\\/g, "/").replace(/\/+$/, "");
+  const safePluginId = sanitizeTranscriptPathSegment(pluginId);
+  const safeId = sanitizeTranscriptPathSegment(conversationId);
+  return `${safeConfigDir}/plugins/${safePluginId}/sessions/${safeId}.json`;
+}
+function serializeMimoTranscript(conversation) {
+  const file2 = {
+    version: MIMO_TRANSCRIPT_VERSION,
+    conversationId: conversation.id,
+    messages: conversation.messages
+  };
+  return JSON.stringify(file2);
+}
+function isChatMessage(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const message = value;
+  return (message.role === "user" || message.role === "assistant") && typeof message.content === "string" && typeof message.id === "string" && typeof message.timestamp === "number";
+}
+function parseMimoTranscript(raw) {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return null;
+    }
+    const messages = parsed.messages;
+    if (!Array.isArray(messages)) {
+      return null;
+    }
+    return messages.filter(isChatMessage);
+  } catch (e) {
+    return null;
+  }
+}
+
+// src/providers/mimo/history/MimoConversationHistoryService.ts
+var MimoConversationHistoryService = class {
+  constructor() {
+    this.storage = null;
+  }
+  attachWorkspaceStorage(storage) {
+    this.storage = storage;
+  }
+  async persistConversationMessages(conversation) {
+    const storage = this.storage;
+    if (!storage) {
+      return;
+    }
+    const path7 = this.getTranscriptPath(conversation);
+    if (!path7) {
+      return;
+    }
+    if (conversation.messages.length === 0) {
+      if (await storage.adapter.exists(path7)) {
+        await storage.adapter.delete(path7);
+      }
+      return;
+    }
+    await storage.adapter.write(path7, serializeMimoTranscript(conversation));
+  }
+  async hydrateConversationHistory(conversation, _vaultPath) {
+    const storage = this.storage;
+    const path7 = this.getTranscriptPath(conversation);
+    if (!storage || !path7) {
+      return;
+    }
+    try {
+      if (!await storage.adapter.exists(path7)) {
+        return;
+      }
+      const parsed = parseMimoTranscript(await storage.adapter.read(path7));
+      if (parsed) {
+        conversation.messages = parsed;
+      }
+    } catch (e) {
+    }
+  }
+  async deleteConversationSession(conversation, _vaultPath) {
+    const storage = this.storage;
+    const path7 = this.getTranscriptPath(conversation);
+    if (!storage || !path7) {
+      return;
+    }
+    await storage.adapter.delete(path7);
+  }
+  resolveSessionIdForConversation(_conversation) {
+    return null;
+  }
+  isPendingForkConversation(_conversation) {
+    return false;
+  }
+  buildForkProviderState(_sourceSessionId, _resumeAt) {
+    return {};
+  }
+  getTranscriptPath(conversation) {
+    const storage = this.storage;
+    if (!storage) {
+      return null;
+    }
+    return buildMimoTranscriptPath(storage.configDir, storage.pluginId, conversation.id);
+  }
+};
+
+// src/providers/mimo/history/mimoHistoryService.ts
+var mimoHistoryService = new MimoConversationHistoryService();
+
 // src/core/types/chat.ts
 var VIEW_TYPE_CLAUDIAN = "claudian-view";
 
@@ -24822,7 +24936,7 @@ var MimoMcpStorage = class {
 };
 
 // src/providers/mimo/ui/MimoSettingsTab.ts
-var import_obsidian = require("obsidian");
+var import_obsidian2 = require("obsidian");
 
 // src/i18n/locales/de.json
 var de_exports = {};
@@ -25260,7 +25374,7 @@ var settings2 = {
   },
   mediaFolder: {
     name: "Media folder",
-    desc: "Folder containing attachments/images. When notes use ![[image.jpg]], Claude will look here. Leave empty for vault root."
+    desc: "Folder containing attachments/images. When notes use ![[image.jpg]], previews look here. Leave empty for vault root."
   },
   systemPrompt: {
     name: "Custom system prompt",
@@ -28283,10 +28397,10 @@ var MIMO_CLUSTER_URLS = {
 };
 var MIMO_MODELS = [
   { value: "mimo-v2.5-pro", label: "MiMo V2.5 Pro", description: "1T params \xB7 42B active \xB7 1M context" },
-  { value: "mimo-v2.5", label: "MiMo V2.5", description: "Multimodal \xB7 image / video / audio" }
+  { value: "mimo-v2.5", label: "MiMo V2.5", description: "Default \xB7 image input" }
 ];
 var DEFAULT_MIMO_PROVIDER_SETTINGS = Object.freeze({
-  enabled: false,
+  enabled: true,
   billingMode: "token-plan",
   apiKey: "",
   cluster: "ams",
@@ -28339,102 +28453,180 @@ function normalizeMimoModel(value) {
   return DEFAULT_MIMO_PROVIDER_SETTINGS.model;
 }
 
+// src/providers/mimo/ui/mimoConnection.ts
+var import_obsidian = require("obsidian");
+function getMimoApiKeyIssue(apiKey, billingMode) {
+  const key = apiKey.trim();
+  if (!key) {
+    return "empty";
+  }
+  const lower = key.toLowerCase();
+  if (billingMode === "token-plan" && !lower.startsWith("tp-")) {
+    return "token-plan-prefix";
+  }
+  if (billingMode === "payg" && !lower.startsWith("sk-")) {
+    return "payg-prefix";
+  }
+  return null;
+}
+function getMimoApiKeyWarning(apiKey, billingMode) {
+  const issue2 = getMimoApiKeyIssue(apiKey, billingMode);
+  return issue2 === "empty" ? null : issue2;
+}
+async function probeMimoConnection(settings11, request = import_obsidian.requestUrl) {
+  const issue2 = getMimoApiKeyIssue(settings11.apiKey, settings11.billingMode);
+  if (issue2) {
+    return { ok: false, reason: issue2 };
+  }
+  try {
+    const response = await request({
+      url: `${getMimoBaseUrl(settings11)}/chat/completions`,
+      method: "POST",
+      headers: {
+        "api-key": settings11.apiKey.trim(),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: settings11.model,
+        messages: [{ role: "user", content: "Hi" }],
+        max_completion_tokens: 5
+      }),
+      throw: false
+    });
+    if (response.status >= 200 && response.status < 300) {
+      return { ok: true };
+    }
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, reason: "auth", status: response.status, detail: snippet(response.text) };
+    }
+    if (response.status === 404) {
+      return { ok: false, reason: "not-found", status: response.status, detail: snippet(response.text) };
+    }
+    return { ok: false, reason: "http", status: response.status, detail: snippet(response.text) };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { ok: false, reason: "network", detail: message };
+  }
+}
+function snippet(text) {
+  const trimmed = text == null ? void 0 : text.replace(/\s+/g, " ").trim();
+  if (!trimmed) {
+    return void 0;
+  }
+  return trimmed.slice(0, 120);
+}
+
 // src/providers/mimo/ui/MimoSettingsTab.ts
 var MIMO_STRINGS_EN = {
   setupHeading: "Setup",
   enableName: "Enable MiMo",
-  enableDesc: "Use Xiaomi MiMo as the AI provider in this vault.",
+  enableDesc: "Turn off to disable MiMo in this vault. Leave on to chat with a MiMo API key.",
   billingHeading: "Billing",
   billingModeName: "Billing mode",
-  billingModeDesc: "Token Plan uses a subscription key (tp-xxxxx). Pay as you go uses a usage-based key (sk-xxxxx).",
+  billingModeDesc: `Token Plan uses a subscription key (tp-xxxxx) and a regional cluster. Pay as you go uses a usage-based key (sk-xxxxx) at ${MIMO_PAYG_BASE_URL}.`,
   tokenPlanOption: "Token Plan (tp-xxxxx)",
   paygOption: "Pay as you go (sk-xxxxx)",
   clusterName: "Cluster",
-  clusterDesc: "Select the Token Plan server cluster geographically closest to you.",
+  clusterDesc: "Select the Token Plan cluster closest to you.",
+  clusterEndpoint: (url2) => `Requests go to ${url2}.`,
   clusterAms: "Europe \u2014 Amsterdam",
   clusterSgp: "Asia Pacific \u2014 Singapore",
   clusterCn: "China",
   credentialsHeading: "Credentials",
   apiKeyName: "API key",
-  apiKeyDesc: "Token Plan key starts with tp-xxxxx. Pay-as-you-go key starts with sk-xxxxx.",
+  apiKeyDesc: "Token Plan keys start with tp-. Pay-as-you-go keys start with sk-.",
   apiKeyPlaceholder: "tp-xxxxx  or  sk-xxxxx",
+  showKey: "Show key",
+  hideKey: "Hide key",
+  keyPrefixTokenPlan: "Token Plan keys start with tp-. This looks like a pay-as-you-go key.",
+  keyPrefixPayg: "Pay-as-you-go keys start with sk-. This looks like a Token Plan key.",
   testConnectionName: "Test connection",
-  testConnectionDesc: "Send a quick request to verify your key is working.",
+  testConnectionDesc: "Send a quick request to verify billing, cluster, and key.",
   testButton: "Test",
   testingButton: "Testing\u2026",
-  testEmptyKey: "MiMo: API key is empty. Enter your key above first.",
-  testSuccess: "MiMo: Connection successful \u2713",
+  testEmptyKey: "Enter an API key first.",
+  testSuccess: "Connection successful.",
+  testAuthFailed: "Auth failed. Check the key and billing mode.",
+  testNotFound: "Endpoint not found. Check the Token Plan cluster.",
+  testHttpError: "Request failed.",
+  testNetworkFailed: "Connection failed.",
   modelHeading: "Model",
   defaultModelName: "Default model",
-  defaultModelDesc: "Model used when no per-tab selection is active.",
-  advancedHeading: "Advanced",
-  baseUrlName: "Base URL",
-  baseUrlDesc: (paygUrl) => `Read-only. Token Plan: cluster-specific endpoint. Pay as you go: ${paygUrl}.`,
-  clusterUrlsName: "Token Plan cluster URLs"
+  defaultModelDesc: "Model used when no per-tab selection is active."
 };
 var MIMO_STRINGS_ZH_CN = {
   setupHeading: "\u8BBE\u7F6E",
   enableName: "\u542F\u7528 MiMo",
-  enableDesc: "\u5728\u6B64 Vault \u4E2D\u4F7F\u7528\u5C0F\u7C73 MiMo \u4F5C\u4E3A AI \u63D0\u4F9B\u5546\u3002",
+  enableDesc: "\u5173\u95ED\u540E\u5C06\u5728\u6B64 Vault \u4E2D\u505C\u7528 MiMo\u3002\u4FDD\u6301\u5F00\u542F\u5373\u53EF\u4F7F\u7528 API \u5BC6\u94A5\u804A\u5929\u3002",
   billingHeading: "\u8BA1\u8D39",
   billingModeName: "\u8BA1\u8D39\u6A21\u5F0F",
-  billingModeDesc: "Token Plan \u4F7F\u7528\u8BA2\u9605\u5BC6\u94A5\uFF08tp-xxxxx\uFF09\uFF0C\u6309\u91CF\u4ED8\u8D39\u4F7F\u7528\u6309\u7528\u91CF\u8BA1\u8D39\u5BC6\u94A5\uFF08sk-xxxxx\uFF09\u3002",
+  billingModeDesc: `Token Plan \u4F7F\u7528\u8BA2\u9605\u5BC6\u94A5\uFF08tp-xxxxx\uFF09\u548C\u533A\u57DF\u96C6\u7FA4\u3002\u6309\u91CF\u4ED8\u8D39\u4F7F\u7528\u6309\u7528\u91CF\u8BA1\u8D39\u5BC6\u94A5\uFF08sk-xxxxx\uFF09\uFF0C\u5730\u5740\u4E3A ${MIMO_PAYG_BASE_URL}\u3002`,
   tokenPlanOption: "Token Plan\uFF08tp-xxxxx\uFF09",
   paygOption: "\u6309\u91CF\u4ED8\u8D39\uFF08sk-xxxxx\uFF09",
   clusterName: "\u670D\u52A1\u5668\u96C6\u7FA4",
-  clusterDesc: "\u9009\u62E9\u5730\u7406\u4F4D\u7F6E\u8DDD\u60A8\u6700\u8FD1\u7684 Token Plan \u670D\u52A1\u5668\u96C6\u7FA4\u3002",
+  clusterDesc: "\u9009\u62E9\u8DDD\u60A8\u6700\u8FD1\u7684 Token Plan \u96C6\u7FA4\u3002",
+  clusterEndpoint: (url2) => `\u8BF7\u6C42\u5C06\u53D1\u9001\u81F3 ${url2}\u3002`,
   clusterAms: "\u6B27\u6D32 \u2014 \u963F\u59C6\u65AF\u7279\u4E39",
   clusterSgp: "\u4E9A\u592A \u2014 \u65B0\u52A0\u5761",
   clusterCn: "\u4E2D\u56FD",
   credentialsHeading: "\u51ED\u636E",
   apiKeyName: "API \u5BC6\u94A5",
-  apiKeyDesc: "Token Plan \u5BC6\u94A5\u4EE5 tp-xxxxx \u5F00\u5934\uFF0C\u6309\u91CF\u4ED8\u8D39\u5BC6\u94A5\u4EE5 sk-xxxxx \u5F00\u5934\u3002",
+  apiKeyDesc: "Token Plan \u5BC6\u94A5\u4EE5 tp- \u5F00\u5934\uFF0C\u6309\u91CF\u4ED8\u8D39\u5BC6\u94A5\u4EE5 sk- \u5F00\u5934\u3002",
   apiKeyPlaceholder: "tp-xxxxx \u6216 sk-xxxxx",
+  showKey: "\u663E\u793A\u5BC6\u94A5",
+  hideKey: "\u9690\u85CF\u5BC6\u94A5",
+  keyPrefixTokenPlan: "Token Plan \u5BC6\u94A5\u4EE5 tp- \u5F00\u5934\u3002\u5F53\u524D\u5BC6\u94A5\u770B\u8D77\u6765\u50CF\u6309\u91CF\u4ED8\u8D39\u5BC6\u94A5\u3002",
+  keyPrefixPayg: "\u6309\u91CF\u4ED8\u8D39\u5BC6\u94A5\u4EE5 sk- \u5F00\u5934\u3002\u5F53\u524D\u5BC6\u94A5\u770B\u8D77\u6765\u50CF Token Plan \u5BC6\u94A5\u3002",
   testConnectionName: "\u6D4B\u8BD5\u8FDE\u63A5",
-  testConnectionDesc: "\u53D1\u9001\u5FEB\u901F\u8BF7\u6C42\u4EE5\u9A8C\u8BC1\u60A8\u7684\u5BC6\u94A5\u662F\u5426\u6709\u6548\u3002",
+  testConnectionDesc: "\u53D1\u9001\u5FEB\u901F\u8BF7\u6C42\u4EE5\u9A8C\u8BC1\u8BA1\u8D39\u6A21\u5F0F\u3001\u96C6\u7FA4\u548C\u5BC6\u94A5\u3002",
   testButton: "\u6D4B\u8BD5",
   testingButton: "\u6D4B\u8BD5\u4E2D\u2026",
-  testEmptyKey: "MiMo\uFF1AAPI \u5BC6\u94A5\u4E3A\u7A7A\uFF0C\u8BF7\u5148\u8F93\u5165\u5BC6\u94A5\u3002",
-  testSuccess: "MiMo\uFF1A\u8FDE\u63A5\u6210\u529F \u2713",
+  testEmptyKey: "\u8BF7\u5148\u8F93\u5165 API \u5BC6\u94A5\u3002",
+  testSuccess: "\u8FDE\u63A5\u6210\u529F\u3002",
+  testAuthFailed: "\u9274\u6743\u5931\u8D25\u3002\u8BF7\u68C0\u67E5\u5BC6\u94A5\u548C\u8BA1\u8D39\u6A21\u5F0F\u3002",
+  testNotFound: "\u627E\u4E0D\u5230\u63A5\u53E3\u3002\u8BF7\u68C0\u67E5 Token Plan \u96C6\u7FA4\u3002",
+  testHttpError: "\u8BF7\u6C42\u5931\u8D25\u3002",
+  testNetworkFailed: "\u8FDE\u63A5\u5931\u8D25\u3002",
   modelHeading: "\u6A21\u578B",
   defaultModelName: "\u9ED8\u8BA4\u6A21\u578B",
-  defaultModelDesc: "\u672A\u5355\u72EC\u9009\u62E9\u6A21\u578B\u65F6\u4F7F\u7528\u6B64\u9ED8\u8BA4\u6A21\u578B\u3002",
-  advancedHeading: "\u9AD8\u7EA7",
-  baseUrlName: "\u57FA\u7840 URL",
-  baseUrlDesc: (paygUrl) => `\u53EA\u8BFB\u3002Token Plan \u4F7F\u7528\u96C6\u7FA4\u4E13\u5C5E\u5730\u5740\uFF0C\u6309\u91CF\u4ED8\u8D39\u4F7F\u7528 ${paygUrl}\u3002`,
-  clusterUrlsName: "Token Plan \u96C6\u7FA4\u5730\u5740"
+  defaultModelDesc: "\u672A\u5355\u72EC\u9009\u62E9\u6A21\u578B\u65F6\u4F7F\u7528\u6B64\u9ED8\u8BA4\u6A21\u578B\u3002"
 };
 var MIMO_STRINGS_ZH_TW = {
   setupHeading: "\u8A2D\u5B9A",
   enableName: "\u555F\u7528 MiMo",
-  enableDesc: "\u5728\u6B64 Vault \u4E2D\u4F7F\u7528\u5C0F\u7C73 MiMo \u4F5C\u70BA AI \u63D0\u4F9B\u5546\u3002",
+  enableDesc: "\u95DC\u9589\u5F8C\u5C07\u5728\u6B64 Vault \u4E2D\u505C\u7528 MiMo\u3002\u4FDD\u6301\u958B\u555F\u5373\u53EF\u4F7F\u7528 API \u91D1\u9470\u804A\u5929\u3002",
   billingHeading: "\u8A08\u8CBB",
   billingModeName: "\u8A08\u8CBB\u6A21\u5F0F",
-  billingModeDesc: "Token Plan \u4F7F\u7528\u8A02\u95B1\u91D1\u9470\uFF08tp-xxxxx\uFF09\uFF0C\u6309\u91CF\u4ED8\u8CBB\u4F7F\u7528\u6309\u7528\u91CF\u8A08\u8CBB\u91D1\u9470\uFF08sk-xxxxx\uFF09\u3002",
+  billingModeDesc: `Token Plan \u4F7F\u7528\u8A02\u95B1\u91D1\u9470\uFF08tp-xxxxx\uFF09\u548C\u5340\u57DF\u53E2\u96C6\u3002\u6309\u91CF\u4ED8\u8CBB\u4F7F\u7528\u6309\u7528\u91CF\u8A08\u8CBB\u91D1\u9470\uFF08sk-xxxxx\uFF09\uFF0C\u4F4D\u5740\u70BA ${MIMO_PAYG_BASE_URL}\u3002`,
   tokenPlanOption: "Token Plan\uFF08tp-xxxxx\uFF09",
   paygOption: "\u6309\u91CF\u4ED8\u8CBB\uFF08sk-xxxxx\uFF09",
   clusterName: "\u4F3A\u670D\u5668\u53E2\u96C6",
-  clusterDesc: "\u9078\u64C7\u5730\u7406\u4F4D\u7F6E\u8DDD\u60A8\u6700\u8FD1\u7684 Token Plan \u4F3A\u670D\u5668\u53E2\u96C6\u3002",
+  clusterDesc: "\u9078\u64C7\u8DDD\u60A8\u6700\u8FD1\u7684 Token Plan \u53E2\u96C6\u3002",
+  clusterEndpoint: (url2) => `\u8ACB\u6C42\u5C07\u50B3\u9001\u81F3 ${url2}\u3002`,
   clusterAms: "\u6B50\u6D32 \u2014 \u963F\u59C6\u65AF\u7279\u4E39",
   clusterSgp: "\u4E9E\u592A \u2014 \u65B0\u52A0\u5761",
   clusterCn: "\u4E2D\u570B",
   credentialsHeading: "\u6191\u8B49",
   apiKeyName: "API \u91D1\u9470",
-  apiKeyDesc: "Token Plan \u91D1\u9470\u4EE5 tp-xxxxx \u958B\u982D\uFF0C\u6309\u91CF\u4ED8\u8CBB\u91D1\u9470\u4EE5 sk-xxxxx \u958B\u982D\u3002",
+  apiKeyDesc: "Token Plan \u91D1\u9470\u4EE5 tp- \u958B\u982D\uFF0C\u6309\u91CF\u4ED8\u8CBB\u91D1\u9470\u4EE5 sk- \u958B\u982D\u3002",
   apiKeyPlaceholder: "tp-xxxxx \u6216 sk-xxxxx",
+  showKey: "\u986F\u793A\u91D1\u9470",
+  hideKey: "\u96B1\u85CF\u91D1\u9470",
+  keyPrefixTokenPlan: "Token Plan \u91D1\u9470\u4EE5 tp- \u958B\u982D\u3002\u76EE\u524D\u91D1\u9470\u770B\u8D77\u4F86\u50CF\u6309\u91CF\u4ED8\u8CBB\u91D1\u9470\u3002",
+  keyPrefixPayg: "\u6309\u91CF\u4ED8\u8CBB\u91D1\u9470\u4EE5 sk- \u958B\u982D\u3002\u76EE\u524D\u91D1\u9470\u770B\u8D77\u4F86\u50CF Token Plan \u91D1\u9470\u3002",
   testConnectionName: "\u6E2C\u8A66\u9023\u7DDA",
-  testConnectionDesc: "\u767C\u9001\u5FEB\u901F\u8ACB\u6C42\u4EE5\u9A57\u8B49\u60A8\u7684\u91D1\u9470\u662F\u5426\u6709\u6548\u3002",
+  testConnectionDesc: "\u767C\u9001\u5FEB\u901F\u8ACB\u6C42\u4EE5\u9A57\u8B49\u8A08\u8CBB\u6A21\u5F0F\u3001\u53E2\u96C6\u548C\u91D1\u9470\u3002",
   testButton: "\u6E2C\u8A66",
   testingButton: "\u6E2C\u8A66\u4E2D\u2026",
-  testEmptyKey: "MiMo\uFF1AAPI \u91D1\u9470\u70BA\u7A7A\uFF0C\u8ACB\u5148\u8F38\u5165\u91D1\u9470\u3002",
-  testSuccess: "MiMo\uFF1A\u9023\u7DDA\u6210\u529F \u2713",
+  testEmptyKey: "\u8ACB\u5148\u8F38\u5165 API \u91D1\u9470\u3002",
+  testSuccess: "\u9023\u7DDA\u6210\u529F\u3002",
+  testAuthFailed: "\u9A57\u8B49\u5931\u6557\u3002\u8ACB\u6AA2\u67E5\u91D1\u9470\u548C\u8A08\u8CBB\u6A21\u5F0F\u3002",
+  testNotFound: "\u627E\u4E0D\u5230\u4ECB\u9762\u3002\u8ACB\u6AA2\u67E5 Token Plan \u53E2\u96C6\u3002",
+  testHttpError: "\u8ACB\u6C42\u5931\u6557\u3002",
+  testNetworkFailed: "\u9023\u7DDA\u5931\u6557\u3002",
   modelHeading: "\u6A21\u578B",
   defaultModelName: "\u9810\u8A2D\u6A21\u578B",
-  defaultModelDesc: "\u672A\u55AE\u7368\u9078\u64C7\u6A21\u578B\u6642\u4F7F\u7528\u6B64\u9810\u8A2D\u6A21\u578B\u3002",
-  advancedHeading: "\u9032\u968E",
-  baseUrlName: "\u57FA\u790E URL",
-  baseUrlDesc: (paygUrl) => `\u552F\u8B80\u3002Token Plan \u4F7F\u7528\u53E2\u96C6\u5C08\u5C6C\u4F4D\u5740\uFF0C\u6309\u91CF\u4ED8\u8CBB\u4F7F\u7528 ${paygUrl}\u3002`,
-  clusterUrlsName: "Token Plan \u53E2\u96C6\u4F4D\u5740"
+  defaultModelDesc: "\u672A\u55AE\u7368\u9078\u64C7\u6A21\u578B\u6642\u4F7F\u7528\u6B64\u9810\u8A2D\u6A21\u578B\u3002"
 };
 function getMimoStrings() {
   const locale = getLocale();
@@ -28442,93 +28634,127 @@ function getMimoStrings() {
   if (locale === "zh-TW") return MIMO_STRINGS_ZH_TW;
   return MIMO_STRINGS_EN;
 }
+function formatProbeMessage(s, result) {
+  if (result.ok) {
+    return s.testSuccess;
+  }
+  switch (result.reason) {
+    case "empty":
+      return s.testEmptyKey;
+    case "token-plan-prefix":
+      return s.keyPrefixTokenPlan;
+    case "payg-prefix":
+      return s.keyPrefixPayg;
+    case "auth":
+      return result.detail ? `${s.testAuthFailed} ${result.detail}` : s.testAuthFailed;
+    case "not-found":
+      return s.testNotFound;
+    case "http":
+      return result.status ? `${s.testHttpError} (${result.status}${result.detail ? `: ${result.detail}` : ""})` : s.testHttpError;
+    case "network":
+      return result.detail ? `${s.testNetworkFailed} ${result.detail}` : s.testNetworkFailed;
+  }
+}
 var mimoSettingsTabRenderer = {
   render(container, context) {
     const s = getMimoStrings();
     const settingsBag = context.plugin.settings;
-    new import_obsidian.Setting(container).setName(s.setupHeading).setHeading();
-    new import_obsidian.Setting(container).setName(s.enableName).setDesc(s.enableDesc).addToggle(
+    new import_obsidian2.Setting(container).setName(s.setupHeading).setHeading();
+    new import_obsidian2.Setting(container).setName(s.enableName).setDesc(s.enableDesc).addToggle(
       (toggle) => toggle.setValue(getMimoProviderSettings(settingsBag).enabled).onChange(async (value) => {
         updateMimoProviderSettings(settingsBag, { enabled: value });
         await context.plugin.saveSettings();
         context.refreshModelSelectors();
       })
     );
-    new import_obsidian.Setting(container).setName(s.billingHeading).setHeading();
+    new import_obsidian2.Setting(container).setName(s.billingHeading).setHeading();
     let clusterSetting = null;
-    let baseUrlSetting = null;
+    let refreshKeyWarning = () => void 0;
+    const describeCluster = () => {
+      const mimoSettings = getMimoProviderSettings(settingsBag);
+      return `${s.clusterDesc} ${s.clusterEndpoint(getMimoBaseUrl(mimoSettings))}`;
+    };
     const refreshVisibility = () => {
       const isTokenPlan = getMimoProviderSettings(settingsBag).billingMode === "token-plan";
       clusterSetting == null ? void 0 : clusterSetting.settingEl.toggleClass("claudian-hidden", !isTokenPlan);
+      clusterSetting == null ? void 0 : clusterSetting.setDesc(describeCluster());
     };
-    new import_obsidian.Setting(container).setName(s.billingModeName).setDesc(s.billingModeDesc).addDropdown((dropdown) => {
+    new import_obsidian2.Setting(container).setName(s.billingModeName).setDesc(s.billingModeDesc).addDropdown((dropdown) => {
       dropdown.addOption("token-plan", s.tokenPlanOption).addOption("payg", s.paygOption).setValue(getMimoProviderSettings(settingsBag).billingMode).onChange(async (value) => {
-        var _a3;
         updateMimoProviderSettings(settingsBag, { billingMode: value });
         await context.plugin.saveSettings();
         refreshVisibility();
-        const mimoSettings = getMimoProviderSettings(settingsBag);
-        (_a3 = baseUrlSetting == null ? void 0 : baseUrlSetting.controlEl.querySelector("input")) == null ? void 0 : _a3.setAttribute("value", getMimoBaseUrl(mimoSettings));
+        refreshKeyWarning();
       });
     });
-    clusterSetting = new import_obsidian.Setting(container).setName(s.clusterName).setDesc(s.clusterDesc).addDropdown((dropdown) => {
+    clusterSetting = new import_obsidian2.Setting(container).setName(s.clusterName).setDesc(describeCluster()).addDropdown((dropdown) => {
       dropdown.addOption("ams", s.clusterAms).addOption("sgp", s.clusterSgp).addOption("cn", s.clusterCn).setValue(getMimoProviderSettings(settingsBag).cluster).onChange(async (value) => {
-        var _a3;
         updateMimoProviderSettings(settingsBag, { cluster: value });
         await context.plugin.saveSettings();
-        const mimoSettings = getMimoProviderSettings(settingsBag);
-        (_a3 = baseUrlSetting == null ? void 0 : baseUrlSetting.controlEl.querySelector("input")) == null ? void 0 : _a3.setAttribute("value", getMimoBaseUrl(mimoSettings));
+        clusterSetting == null ? void 0 : clusterSetting.setDesc(describeCluster());
       });
     });
     refreshVisibility();
-    new import_obsidian.Setting(container).setName(s.credentialsHeading).setHeading();
-    new import_obsidian.Setting(container).setName(s.apiKeyName).setDesc(s.apiKeyDesc).addText((text) => {
+    new import_obsidian2.Setting(container).setName(s.credentialsHeading).setHeading();
+    let keyVisible = false;
+    let apiKeyInput = null;
+    new import_obsidian2.Setting(container).setName(s.apiKeyName).setDesc(s.apiKeyDesc).addText((text) => {
+      apiKeyInput = text.inputEl;
+      text.inputEl.type = "password";
+      text.inputEl.setAttribute("autocomplete", "off");
       text.setPlaceholder(s.apiKeyPlaceholder).setValue(getMimoProviderSettings(settingsBag).apiKey).onChange(async (value) => {
         updateMimoProviderSettings(settingsBag, { apiKey: value.trim() });
         await context.plugin.saveSettings();
+        refreshKeyWarning();
       });
-      text.inputEl.type = "password";
-      text.inputEl.autocomplete = "off";
-    });
-    new import_obsidian.Setting(container).setName(s.testConnectionName).setDesc(s.testConnectionDesc).addButton((button) => {
-      button.setButtonText(s.testButton).onClick(async () => {
-        const mimoSettings = getMimoProviderSettings(settingsBag);
-        if (!mimoSettings.apiKey) {
-          new import_obsidian.Notice(s.testEmptyKey);
-          return;
+    }).addExtraButton((button) => {
+      button.setIcon("eye").setTooltip(s.showKey).onClick(() => {
+        keyVisible = !keyVisible;
+        if (apiKeyInput) {
+          apiKeyInput.type = keyVisible ? "text" : "password";
         }
+        button.setIcon(keyVisible ? "eye-off" : "eye");
+        button.setTooltip(keyVisible ? s.hideKey : s.showKey);
+      });
+    });
+    const keyWarningEl = container.createDiv({
+      cls: "claudian-setting-validation claudian-setting-validation-warning claudian-mimo-key-warning claudian-hidden"
+    });
+    refreshKeyWarning = () => {
+      const mimoSettings = getMimoProviderSettings(settingsBag);
+      const warning = getMimoApiKeyWarning(mimoSettings.apiKey, mimoSettings.billingMode);
+      if (!warning) {
+        keyWarningEl.addClass("claudian-hidden");
+        keyWarningEl.setText("");
+        return;
+      }
+      keyWarningEl.removeClass("claudian-hidden");
+      keyWarningEl.setText(warning === "token-plan-prefix" ? s.keyPrefixTokenPlan : s.keyPrefixPayg);
+    };
+    refreshKeyWarning();
+    let showTestStatus = (_result) => void 0;
+    new import_obsidian2.Setting(container).setName(s.testConnectionName).setDesc(s.testConnectionDesc).addButton((button) => {
+      button.setButtonText(s.testButton).onClick(async () => {
         button.setButtonText(s.testingButton).setDisabled(true);
         try {
-          const baseUrl = getMimoBaseUrl(mimoSettings);
-          const response = await (0, import_obsidian.requestUrl)({
-            url: `${baseUrl}/chat/completions`,
-            method: "POST",
-            headers: {
-              "api-key": mimoSettings.apiKey,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: mimoSettings.model,
-              messages: [{ role: "user", content: "Hi" }],
-              max_completion_tokens: 5
-            }),
-            throw: false
-          });
-          if (response.status >= 200 && response.status < 300) {
-            new import_obsidian.Notice(s.testSuccess);
-          } else {
-            new import_obsidian.Notice(`MiMo error ${response.status}: ${response.text.slice(0, 120)}`);
-          }
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Unknown error";
-          new import_obsidian.Notice(`MiMo: Connection failed \u2014 ${message}`);
+          const result = await probeMimoConnection(getMimoProviderSettings(settingsBag));
+          showTestStatus(result);
         } finally {
           button.setButtonText(s.testButton).setDisabled(false);
         }
       });
     });
-    new import_obsidian.Setting(container).setName(s.modelHeading).setHeading();
-    new import_obsidian.Setting(container).setName(s.defaultModelName).setDesc(s.defaultModelDesc).addDropdown((dropdown) => {
+    const testStatusEl = container.createDiv({
+      cls: "claudian-setting-validation claudian-mimo-test-status claudian-hidden"
+    });
+    showTestStatus = (result) => {
+      testStatusEl.removeClass("claudian-hidden");
+      testStatusEl.toggleClass("claudian-setting-validation-error", !result.ok);
+      testStatusEl.toggleClass("claudian-setting-validation-success", result.ok);
+      testStatusEl.setText(formatProbeMessage(s, result));
+    };
+    new import_obsidian2.Setting(container).setName(s.modelHeading).setHeading();
+    new import_obsidian2.Setting(container).setName(s.defaultModelName).setDesc(s.defaultModelDesc).addDropdown((dropdown) => {
       for (const m of MIMO_MODELS) {
         dropdown.addOption(m.value, m.label);
       }
@@ -28538,22 +28764,17 @@ var mimoSettingsTabRenderer = {
         context.refreshModelSelectors();
       });
     });
-    new import_obsidian.Setting(container).setName(s.advancedHeading).setHeading();
-    const initialBaseUrl = getMimoBaseUrl(getMimoProviderSettings(settingsBag));
-    baseUrlSetting = new import_obsidian.Setting(container).setName(s.baseUrlName).setDesc(s.baseUrlDesc(MIMO_PAYG_BASE_URL)).addText((text) => {
-      text.setValue(initialBaseUrl).setDisabled(true);
-    });
-    new import_obsidian.Setting(container).setName(s.clusterUrlsName).setDesc(
-      `Europe: ${MIMO_CLUSTER_URLS.ams} \xB7 Singapore: ${MIMO_CLUSTER_URLS.sgp} \xB7 China: ${MIMO_CLUSTER_URLS.cn}`
-    );
-    const customContextEl = container.createDiv();
-    context.renderCustomContextLimits(customContextEl, "mimo");
   }
 };
 
 // src/providers/mimo/app/MimoWorkspaceServices.ts
 var mimoWorkspaceRegistration = {
-  async initialize({ vaultAdapter }) {
+  async initialize({ vaultAdapter, plugin }) {
+    mimoHistoryService.attachWorkspaceStorage({
+      adapter: vaultAdapter,
+      configDir: plugin.app.vault.configDir,
+      pluginId: plugin.manifest.id
+    });
     const mcpStorage = new MimoMcpStorage(vaultAdapter);
     const mcpServerManager = new McpServerManager(mcpStorage);
     await mcpServerManager.loadServers();
@@ -28569,17 +28790,41 @@ var LINKED_NOTE_TAG = "linked_note";
 var NOTE_CONTEXT_TAG_PATTERN = "(linked_note|current_note)";
 var NOTE_CONTEXT_PREFIX_REGEX = new RegExp(`^<${NOTE_CONTEXT_TAG_PATTERN}>\\n[\\s\\S]*?<\\/\\1>\\n\\n`);
 var NOTE_CONTEXT_SUFFIX_REGEX = new RegExp(`\\n\\n<${NOTE_CONTEXT_TAG_PATTERN}>\\n[\\s\\S]*?<\\/\\1>$`);
-var XML_CONTEXT_PATTERN = /\n\n<(?:linked_note|current_note|editor_selection|editor_cursor|context_files|canvas_selection|browser_selection)[\s>]/;
+var XML_CONTEXT_PATTERN = /\n\n<(?:linked_note|current_note|attached_note|editor_selection|editor_cursor|context_files|canvas_selection|browser_selection)[\s>]/;
 var BRACKET_CONTEXT_PATTERN = /\n\[(?:Current note|Editor selection from|Browser selection from|Canvas selection from)\b/;
-function formatCurrentNote(notePath) {
+function formatCurrentNote(notePath, body) {
+  if (body !== void 0 && body.length > 0) {
+    return `<${LINKED_NOTE_TAG}>
+${notePath}
+
+${body}
+</${LINKED_NOTE_TAG}>`;
+  }
   return `<${LINKED_NOTE_TAG}>
 ${notePath}
 </${LINKED_NOTE_TAG}>`;
 }
-function appendCurrentNote(prompt, notePath) {
+function appendCurrentNote(prompt, notePath, body) {
   return `${prompt}
 
-${formatCurrentNote(notePath)}`;
+${formatCurrentNote(notePath, body)}`;
+}
+function formatAttachedNote(notePath, body) {
+  if (body.length > 0) {
+    return `<attached_note>
+${notePath}
+
+${body}
+</attached_note>`;
+  }
+  return `<attached_note>
+${notePath}
+</attached_note>`;
+}
+function appendAttachedNote(prompt, notePath, body) {
+  return `${prompt}
+
+${formatAttachedNote(notePath, body)}`;
 }
 function extractContentBeforeXmlContext(text) {
   if (!text) return void 0;
@@ -28928,7 +29173,7 @@ var QueryBackedInlineEditService = class {
 };
 
 // src/providers/mimo/auxiliary/MimoAuxQueryRunner.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 var MimoAuxQueryRunner = class {
   constructor(plugin) {
     this.plugin = plugin;
@@ -28944,7 +29189,7 @@ var MimoAuxQueryRunner = class {
     this.abortController = (_a3 = config2.abortController) != null ? _a3 : new AbortController();
     const model = (_b = config2.model) != null ? _b : mimoSettings.model;
     const baseUrl = getMimoBaseUrl(mimoSettings);
-    const response = await (0, import_obsidian2.requestUrl)({
+    const response = await (0, import_obsidian3.requestUrl)({
       url: `${baseUrl}/chat/completions`,
       method: "POST",
       headers: {
@@ -29313,8 +29558,8 @@ var MIMO_PROVIDER_CAPABILITIES = Object.freeze({
   supportsFork: false,
   supportsProviderCommands: false,
   supportsImageAttachments: true,
-  supportsInstructionMode: true,
-  supportsMcpTools: true,
+  supportsInstructionMode: false,
+  supportsMcpTools: false,
   reasoningControl: "none"
 });
 
@@ -29328,22 +29573,8 @@ var mimoSettingsReconciler = {
   }
 };
 
-// src/providers/mimo/history/MimoConversationHistoryService.ts
-var MimoConversationHistoryService = class {
-  async hydrateConversationHistory(_conversation, _vaultPath) {
-  }
-  async deleteConversationSession(_conversation, _vaultPath) {
-  }
-  resolveSessionIdForConversation(_conversation) {
-    return null;
-  }
-  isPendingForkConversation(_conversation) {
-    return false;
-  }
-  buildForkProviderState(_sourceSessionId, _resumeAt) {
-    return {};
-  }
-};
+// src/providers/mimo/runtime/MimoChatRuntime.ts
+var import_obsidian4 = require("obsidian");
 
 // src/utils/browser.ts
 function escapeXmlAttribute(value) {
@@ -36907,8 +37138,100 @@ var McpToolRunner = class {
   }
 };
 
+// src/providers/mimo/runtime/vaultNoteContext.ts
+var MAX_VAULT_NOTE_FILES = 10;
+var MAX_CHARS_PER_VAULT_NOTE = 8e4;
+var MAX_TOTAL_VAULT_NOTE_CHARS = 24e4;
+var TEXT_NOTE_EXTENSIONS = /* @__PURE__ */ new Set([
+  "md",
+  "markdown",
+  "txt",
+  "csv",
+  "json",
+  "canvas"
+]);
+var BLOCKED_PATH_SEGMENTS = /* @__PURE__ */ new Set([
+  ".claudian",
+  ".claude",
+  ".codex",
+  ".mimo",
+  ".agents"
+]);
+function isVaultNoteTextPath(path7) {
+  const dot = path7.lastIndexOf(".");
+  if (dot < 0 || dot === path7.length - 1) {
+    return false;
+  }
+  const extension = path7.slice(dot + 1).toLowerCase();
+  return TEXT_NOTE_EXTENSIONS.has(extension);
+}
+function isBlockedVaultNotePath(path7, extraSegments = []) {
+  const blocked = extraSegments.length > 0 ? /* @__PURE__ */ new Set([...BLOCKED_PATH_SEGMENTS, ...extraSegments]) : BLOCKED_PATH_SEGMENTS;
+  return path7.replace(/\\/g, "/").split("/").some((segment) => blocked.has(segment));
+}
+async function loadVaultNoteSnippets(options) {
+  var _a3, _b, _c, _d;
+  const maxFiles = (_a3 = options.maxFiles) != null ? _a3 : MAX_VAULT_NOTE_FILES;
+  const maxCharsPerFile = (_b = options.maxCharsPerFile) != null ? _b : MAX_CHARS_PER_VAULT_NOTE;
+  const maxTotalChars = (_c = options.maxTotalChars) != null ? _c : MAX_TOTAL_VAULT_NOTE_CHARS;
+  const currentNotePath = options.currentNotePath;
+  const blockedSegments = (_d = options.blockedSegments) != null ? _d : [];
+  const uniquePaths = [];
+  const seen = /* @__PURE__ */ new Set();
+  const ordered = [
+    ...currentNotePath ? [currentNotePath] : [],
+    ...options.paths
+  ];
+  for (const rawPath of ordered) {
+    const path7 = rawPath.trim();
+    if (!path7 || seen.has(path7)) {
+      continue;
+    }
+    seen.add(path7);
+    uniquePaths.push(path7);
+  }
+  const snippets = [];
+  let totalChars = 0;
+  for (const path7 of uniquePaths) {
+    if (snippets.length >= maxFiles || totalChars >= maxTotalChars) {
+      break;
+    }
+    if (!isVaultNoteTextPath(path7) || isBlockedVaultNotePath(path7, blockedSegments)) {
+      continue;
+    }
+    const raw = await options.readNote(path7);
+    if (raw === null) {
+      continue;
+    }
+    const remainingTotal = maxTotalChars - totalChars;
+    const budget = Math.min(maxCharsPerFile, remainingTotal);
+    if (budget <= 0) {
+      break;
+    }
+    const truncated = raw.length > budget;
+    const body = truncated ? `${raw.slice(0, budget)}
+
+[truncated]` : raw;
+    snippets.push({
+      path: path7,
+      body,
+      truncated,
+      role: path7 === currentNotePath ? "current" : "attached"
+    });
+    totalChars += body.length;
+  }
+  return snippets;
+}
+function applyVaultNoteSnippets(prompt, snippets) {
+  let result = prompt;
+  for (const snippet2 of snippets) {
+    result = snippet2.role === "current" ? appendCurrentNote(result, snippet2.path, snippet2.body) : appendAttachedNote(result, snippet2.path, snippet2.body);
+  }
+  return result;
+}
+
 // src/providers/mimo/runtime/MimoChatRuntime.ts
-var MIMO_SYSTEM_PROMPT = "You are MiMo, an advanced AI coding assistant developed by Xiaomi. Help the user with their coding tasks, answer questions, and assist with their vault.";
+var MIMO_SYSTEM_PROMPT = "You are MiMo, an AI assistant developed by Xiaomi, working inside the user's Obsidian vault. When a message includes <linked_note> or <attached_note> blocks, those blocks contain the full note text. Use that text directly. You cannot read or write other vault files unless the user pastes them.";
 var MimoChatRuntime = class {
   constructor(plugin) {
     this.plugin = plugin;
@@ -36922,9 +37245,6 @@ var MimoChatRuntime = class {
   prepareTurn(request) {
     var _a3;
     let prompt = request.text;
-    if (request.currentNotePath) {
-      prompt = appendCurrentNote(prompt, request.currentNotePath);
-    }
     if (request.editorSelection && request.editorSelection.mode !== "none") {
       prompt = appendEditorContext(prompt, request.editorSelection);
     }
@@ -36966,36 +37286,65 @@ var MimoChatRuntime = class {
     }
     this.abortController = new AbortController();
     const { signal } = this.abortController;
-    const messages = buildMimoMessages(turn, conversationHistory, MIMO_SYSTEM_PROMPT);
+    const prompt = await this.applyVaultNoteContext(turn);
+    const messages = buildMimoMessages({ ...turn, prompt }, conversationHistory, MIMO_SYSTEM_PROMPT);
     const rawModel = typeof settings11.model === "string" ? settings11.model.trim() : "";
     const selectedModel = rawModel && isMimoModel(rawModel) ? rawModel : mimoSettings.model;
     const baseUrl = getMimoBaseUrl(mimoSettings);
-    let toolDefs = [];
-    let serverConfigs = {};
     const runner = new McpToolRunner();
     try {
-      if (turn.mcpMentions.size > 0) {
-        const mcpManager = ProviderWorkspaceRegistry.getMcpServerManager("mimo");
-        if (mcpManager) {
-          serverConfigs = mcpManager.getActiveServers(turn.mcpMentions);
-          if (Object.keys(serverConfigs).length > 0) {
-            toolDefs = await runner.listTools(serverConfigs);
-          }
-        }
-      }
       yield* this._runAgentLoop(
         baseUrl,
         mimoSettings.apiKey,
         selectedModel,
         messages,
-        toolDefs,
-        serverConfigs,
+        [],
+        {},
         runner,
         signal
       );
     } finally {
       await runner.close();
       this.abortController = null;
+    }
+  }
+  async applyVaultNoteContext(turn) {
+    var _a3;
+    const currentNotePath = turn.request.currentNotePath;
+    const attachedFilePaths = (_a3 = turn.request.attachedFilePaths) != null ? _a3 : [];
+    if (!currentNotePath && attachedFilePaths.length === 0) {
+      return turn.prompt;
+    }
+    const snippets = await loadVaultNoteSnippets({
+      currentNotePath,
+      paths: attachedFilePaths,
+      blockedSegments: [this.plugin.app.vault.configDir],
+      readNote: (path7) => this.readVaultNote(path7)
+    });
+    if (snippets.length > 0) {
+      return applyVaultNoteSnippets(turn.prompt, snippets);
+    }
+    if (currentNotePath) {
+      return appendCurrentNote(turn.prompt, currentNotePath);
+    }
+    return turn.prompt;
+  }
+  async readVaultNote(path7) {
+    var _a3;
+    const file2 = this.plugin.app.vault.getAbstractFileByPath(path7);
+    if (!(file2 instanceof import_obsidian4.TFile)) {
+      return null;
+    }
+    for (const leaf of this.plugin.app.workspace.getLeavesOfType("markdown")) {
+      const view = leaf.view;
+      if (view instanceof import_obsidian4.MarkdownView && ((_a3 = view.file) == null ? void 0 : _a3.path) === path7) {
+        return view.editor.getValue();
+      }
+    }
+    try {
+      return await this.plugin.app.vault.cachedRead(file2);
+    } catch (e) {
+      return null;
     }
   }
   /** The core agent loop: stream → accumulate tool calls → execute → repeat. */
@@ -37233,7 +37582,7 @@ var mimoProviderRegistration = {
   createRuntime: ({ plugin }) => new MimoChatRuntime(plugin),
   createTitleGenerationService: (plugin) => new MimoTitleGenerationService(plugin),
   displayName: "Connect MiMo API",
-  historyService: new MimoConversationHistoryService(),
+  historyService: mimoHistoryService,
   isEnabled: (settings11) => getMimoProviderSettings(settings11).enabled,
   settingsReconciler: mimoSettingsReconciler,
   taskResultInterpreter: new MimoTaskResultInterpreter()
@@ -37282,7 +37631,10 @@ function normalizeHiddenCommandList(value) {
   return normalized;
 }
 function getDefaultHiddenProviderCommands() {
-  return {};
+  return {
+    // HTTP chat has no filesystem agent, so /add-dir would only store unused paths.
+    mimo: ["add-dir"]
+  };
 }
 function normalizeHiddenProviderCommands(value) {
   if (!value || typeof value !== "object") {
@@ -37355,7 +37707,7 @@ var DEFAULT_CLAUDIAN_SETTINGS = {
 };
 
 // src/app/storage/SharedStorageService.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/core/bootstrap/StoragePaths.ts
 var CLAUDIAN_STORAGE_PATH = ".claudian";
@@ -37796,27 +38148,6 @@ function setEnvironmentVariablesForScope(settings11, scope, envText) {
   }
   setProviderEnvironmentVariables(settings11, providerId, envText);
 }
-function getEnvironmentReviewKeysForScope(envText, scope) {
-  const reviewKeys = /* @__PURE__ */ new Set();
-  const expectedProviderId = resolveScopeProviderId(scope);
-  for (const line of envText.split(/\r?\n/)) {
-    const key = extractEnvironmentKey(line);
-    if (!key || reviewKeys.has(key)) {
-      continue;
-    }
-    const ownership = classifyEnvironmentKey(key);
-    if (scope === "shared") {
-      if (ownership.type !== "shared-known") {
-        reviewKeys.add(key);
-      }
-      continue;
-    }
-    if (ownership.type !== "provider" || ownership.providerId !== expectedProviderId) {
-      reviewKeys.add(key);
-    }
-  }
-  return Array.from(reviewKeys);
-}
 function inferEnvironmentSnippetScope(envText) {
   const classified = classifyEnvironmentVariablesByOwnership(envText);
   const nonEmptyScopes = [];
@@ -37836,29 +38167,6 @@ function resolveEnvironmentSnippetScope(envText, fallbackScope) {
     return inferredScope;
   }
   return hasMeaningfulEnvironmentContent(envText) ? void 0 : fallbackScope;
-}
-function getEnvironmentScopeUpdates(envText, fallbackScope) {
-  const classified = classifyEnvironmentVariablesByOwnership(envText);
-  const updates = [];
-  if (classified.shared.trim()) {
-    updates.push({ scope: "shared", envText: classified.shared });
-  }
-  for (const [providerId, providerEnv] of Object.entries(classified.providers)) {
-    if (!providerEnv || !providerEnv.trim()) {
-      continue;
-    }
-    updates.push({
-      scope: `provider:${providerId}`,
-      envText: providerEnv
-    });
-  }
-  if (updates.length > 0) {
-    return updates;
-  }
-  if (fallbackScope) {
-    return [{ scope: fallbackScope, envText }];
-  }
-  return [];
 }
 
 // src/core/types/settings.ts
@@ -39549,7 +39857,7 @@ var SharedStorageService = class {
       data.tabManagerState = state;
       await this.plugin.saveData(data);
     } catch (e) {
-      new import_obsidian3.Notice("Failed to save tab layout");
+      new import_obsidian5.Notice("Failed to save tab layout");
     }
   }
   async getTabManagerState() {
@@ -39903,95 +40211,7 @@ var ProviderSettingsCoordinator = class {
 };
 
 // src/features/chat/ClaudianView.ts
-var import_obsidian28 = require("obsidian");
-
-// src/shared/icons.ts
-var SVG_NS = "http://www.w3.org/2000/svg";
-var MCP_ICON_PATHS = [
-  "M15.688 2.343a2.588 2.588 0 00-3.61 0l-9.626 9.44a.863.863 0 01-1.203 0 .823.823 0 010-1.18l9.626-9.44a4.313 4.313 0 016.016 0 4.116 4.116 0 011.204 3.54 4.3 4.3 0 013.609 1.18l.05.05a4.115 4.115 0 010 5.9l-8.706 8.537a.274.274 0 000 .393l1.788 1.754a.823.823 0 010 1.18.863.863 0 01-1.203 0l-1.788-1.753a1.92 1.92 0 010-2.754l8.706-8.538a2.47 2.47 0 000-3.54l-.05-.049a2.588 2.588 0 00-3.607-.003l-7.172 7.034-.002.002-.098.097a.863.863 0 01-1.204 0 .823.823 0 010-1.18l7.273-7.133a2.47 2.47 0 00-.003-3.537z",
-  "M14.485 4.703a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a4.115 4.115 0 000 5.9 4.314 4.314 0 006.016 0l7.12-6.982a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a2.588 2.588 0 01-3.61 0 2.47 2.47 0 010-3.54l7.12-6.982z"
-];
-function createSvgElement(ownerDocument, tagName) {
-  return ownerDocument.createElementNS(SVG_NS, tagName);
-}
-function appendMcpIcon(container) {
-  container.empty();
-  const svg = createSvgElement(container.ownerDocument, "svg");
-  svg.setAttribute("fill", "currentColor");
-  svg.setAttribute("fill-rule", "evenodd");
-  svg.setAttribute("height", "1em");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("width", "1em");
-  const title = createSvgElement(container.ownerDocument, "title");
-  title.textContent = "MCP";
-  svg.appendChild(title);
-  for (const pathData of MCP_ICON_PATHS) {
-    const path7 = createSvgElement(container.ownerDocument, "path");
-    path7.setAttribute("d", pathData);
-    svg.appendChild(path7);
-  }
-  container.appendChild(svg);
-}
-function appendCheckIcon(container) {
-  container.empty();
-  const svg = createSvgElement(container.ownerDocument, "svg");
-  svg.setAttribute("width", "12");
-  svg.setAttribute("height", "12");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("stroke", "currentColor");
-  svg.setAttribute("stroke-width", "3");
-  svg.setAttribute("stroke-linecap", "round");
-  svg.setAttribute("stroke-linejoin", "round");
-  const polyline = createSvgElement(container.ownerDocument, "polyline");
-  polyline.setAttribute("points", "20 6 9 17 4 12");
-  svg.appendChild(polyline);
-  container.appendChild(svg);
-}
-function createProviderIconSvg(icon, options = {}) {
-  var _a3;
-  const ownerDocument = (_a3 = options.ownerDocument) != null ? _a3 : window.document;
-  const svg = ownerDocument.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("viewBox", icon.viewBox);
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("aria-hidden", "true");
-  svg.classList.add("claudian-provider-icon");
-  if (options.width !== void 0) {
-    svg.setAttribute("width", String(options.width));
-  }
-  if (options.height !== void 0) {
-    svg.setAttribute("height", String(options.height));
-  }
-  if (options.className) {
-    svg.classList.add(...options.className.split(/\s+/).filter(Boolean));
-  }
-  if (options.dataProvider) {
-    svg.setAttribute("data-provider", options.dataProvider);
-  }
-  if (icon.kind === "composite") {
-    for (const child of icon.children) {
-      svg.appendChild(createProviderSvgChild(child, ownerDocument));
-    }
-    return svg;
-  }
-  const path7 = ownerDocument.createElementNS(SVG_NS, "path");
-  path7.setAttribute("d", icon.path);
-  path7.setAttribute("fill", "currentColor");
-  svg.appendChild(path7);
-  return svg;
-}
-function createProviderSvgChild(child, ownerDocument) {
-  const element = ownerDocument.createElementNS(SVG_NS, child.tag);
-  for (const [name, value] of Object.entries(child.attributes)) {
-    element.setAttribute(name, value);
-  }
-  if (child.tag === "g") {
-    for (const nestedChild of child.children) {
-      element.appendChild(createProviderSvgChild(nestedChild, ownerDocument));
-    }
-  }
-  return element;
-}
+var import_obsidian30 = require("obsidian");
 
 // src/utils/animationFrame.ts
 function getRendererWindow() {
@@ -40028,7 +40248,7 @@ function cancelScheduledAnimationFrame(frame) {
 }
 
 // src/features/chat/tabs/Tab.ts
-var import_obsidian25 = require("obsidian");
+var import_obsidian27 = require("obsidian");
 
 // src/core/providers/modelRouting.ts
 function getProviderForModel(model, settings11) {
@@ -40187,7 +40407,7 @@ function getBuiltInCommandsForDropdown(context) {
 }
 
 // src/utils/frontmatter.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 
 // src/utils/slashCommand.ts
 function normalizeArgumentHint(hint) {
@@ -40853,21 +41073,16 @@ var CanvasSelectionController = class {
 };
 
 // src/features/chat/controllers/ConversationController.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/shared/modals/ConfirmModal.ts
-var import_obsidian5 = require("obsidian");
-function confirmDelete(app, message) {
-  return new Promise((resolve3) => {
-    new ConfirmModal(app, message, resolve3).open();
-  });
-}
+var import_obsidian7 = require("obsidian");
 function confirm(app, message, confirmText) {
   return new Promise((resolve3) => {
     new ConfirmModal(app, message, resolve3, confirmText).open();
   });
 }
-var ConfirmModal = class extends import_obsidian5.Modal {
+var ConfirmModal = class extends import_obsidian7.Modal {
   constructor(app, message, resolve3, confirmText) {
     super(app);
     this.resolved = false;
@@ -40879,7 +41094,7 @@ var ConfirmModal = class extends import_obsidian5.Modal {
     this.setTitle(t("common.confirm"));
     this.modalEl.addClass("claudian-confirm-modal");
     this.contentEl.createEl("p", { text: this.message });
-    new import_obsidian5.Setting(this.contentEl).addButton(
+    new import_obsidian7.Setting(this.contentEl).addButton(
       (btn) => btn.setButtonText(t("common.cancel")).onClick(() => this.close())
     ).addButton(
       (btn) => btn.setButtonText(this.confirmText).setWarning().onClick(() => {
@@ -41029,14 +41244,51 @@ function findRewindContext(messages, userIndex) {
   return { prevAssistantUuid, hasResponse };
 }
 
+// src/features/chat/utils/welcomeCopy.ts
+var WELCOME_HINT = "@ to attach another note";
+var WELCOME_FALLBACK_GREETING = "Ask about this note";
+function noteFileName(path7) {
+  var _a3;
+  if (!path7) return null;
+  const name = (_a3 = path7.replace(/\\/g, "/").split("/").pop()) == null ? void 0 : _a3.trim();
+  return name || null;
+}
+function getWelcomeCopy(notePath) {
+  const name = noteFileName(notePath);
+  return {
+    greeting: name ? `Ask about ${name}` : WELCOME_FALLBACK_GREETING,
+    hint: WELCOME_HINT
+  };
+}
+function getOrCreateDiv(parent, cls) {
+  const existing = parent.querySelector(`.${cls}`);
+  if (existing) {
+    return existing;
+  }
+  return parent.createDiv({ cls });
+}
+function paintWelcome(welcomeEl, copy) {
+  const greetingEl = getOrCreateDiv(welcomeEl, "claudian-welcome-greeting");
+  greetingEl.setText(copy.greeting);
+  const hintEl = getOrCreateDiv(welcomeEl, "claudian-welcome-hint");
+  hintEl.setText(copy.hint);
+}
+
 // src/features/chat/controllers/ConversationController.ts
 function runConversationAction(action, failureMessage) {
   void action().catch(() => {
-    new import_obsidian6.Notice(failureMessage);
+    new import_obsidian8.Notice(failureMessage);
   });
+}
+function conversationMatchesFilter(conversation, query) {
+  var _a3;
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+  return conversation.title.toLowerCase().includes(needle) || ((_a3 = conversation.preview) != null ? _a3 : "").toLowerCase().includes(needle);
 }
 var ConversationController = class {
   constructor(deps, callbacks = {}) {
+    this.historyFilterQuery = "";
     this.deps = deps;
     this.callbacks = callbacks;
   }
@@ -41097,13 +41349,13 @@ var ConversationController = class {
       const messagesEl = this.deps.getMessagesEl();
       messagesEl.empty();
       const welcomeEl = messagesEl.createDiv({ cls: "claudian-welcome" });
-      welcomeEl.createDiv({ cls: "claudian-welcome-greeting", text: this.getGreeting() });
       this.deps.setWelcomeEl(welcomeEl);
       (_f = this.deps.getStatusPanel()) == null ? void 0 : _f.remount();
       this.deps.getInputEl().value = "";
       const fileCtx = this.deps.getFileContextManager();
       fileCtx == null ? void 0 : fileCtx.resetForNewConversation();
       fileCtx == null ? void 0 : fileCtx.autoAttachActiveFile();
+      this.refreshWelcome();
       (_g = this.deps.getImageContextManager()) == null ? void 0 : _g.clearImages();
       (_h = this.deps.getMcpServerSelector()) == null ? void 0 : _h.clearEnabled();
       (_i = this.deps.getExternalContextSelector()) == null ? void 0 : _i.clearExternalContexts(
@@ -41195,27 +41447,27 @@ var ConversationController = class {
     const { plugin, state, renderer } = this.deps;
     const agentServiceForCheck = this.getAgentService();
     if (agentServiceForCheck && !agentServiceForCheck.getCapabilities().supportsRewind) {
-      new import_obsidian6.Notice(t("chat.rewind.failed", { error: "Rewind is not supported by this provider." }));
+      new import_obsidian8.Notice(t("chat.rewind.failed", { error: "Rewind is not supported by this provider." }));
       return;
     }
     if (state.isStreaming) {
-      new import_obsidian6.Notice(t("chat.rewind.unavailableStreaming"));
+      new import_obsidian8.Notice(t("chat.rewind.unavailableStreaming"));
       return;
     }
     const msgs = state.messages;
     const userIdx = msgs.findIndex((m) => m.id === userMessageId);
     if (userIdx === -1) {
-      new import_obsidian6.Notice(t("chat.rewind.failed", { error: "Message not found" }));
+      new import_obsidian8.Notice(t("chat.rewind.failed", { error: "Message not found" }));
       return;
     }
     const userMsg = msgs[userIdx];
     if (!userMsg.userMessageId) {
-      new import_obsidian6.Notice(t("chat.rewind.unavailableNoUuid"));
+      new import_obsidian8.Notice(t("chat.rewind.unavailableNoUuid"));
       return;
     }
     const rewindCtx = findRewindContext(msgs, userIdx);
     if (!rewindCtx.hasResponse) {
-      new import_obsidian6.Notice(t("chat.rewind.unavailableNoUuid"));
+      new import_obsidian8.Notice(t("chat.rewind.unavailableNoUuid"));
       return;
     }
     const prevAssistantUuid = rewindCtx.prevAssistantUuid;
@@ -41226,23 +41478,23 @@ var ConversationController = class {
     );
     if (!confirmed) return;
     if (state.isStreaming) {
-      new import_obsidian6.Notice(t("chat.rewind.unavailableStreaming"));
+      new import_obsidian8.Notice(t("chat.rewind.unavailableStreaming"));
       return;
     }
     const agentService = this.getAgentService();
     if (!agentService) {
-      new import_obsidian6.Notice(t("chat.rewind.failed", { error: "Agent service not available" }));
+      new import_obsidian8.Notice(t("chat.rewind.failed", { error: "Agent service not available" }));
       return;
     }
     let result;
     try {
       result = await agentService.rewind(userMsg.userMessageId, prevAssistantUuid, mode);
     } catch (e) {
-      new import_obsidian6.Notice(t("chat.rewind.failed", { error: e instanceof Error ? e.message : "Unknown error" }));
+      new import_obsidian8.Notice(t("chat.rewind.failed", { error: e instanceof Error ? e.message : "Unknown error" }));
       return;
     }
     if (!result.canRewind) {
-      new import_obsidian6.Notice(t("chat.rewind.cannot", { error: (_a3 = result.error) != null ? _a3 : "Unknown error" }));
+      new import_obsidian8.Notice(t("chat.rewind.cannot", { error: (_a3 = result.error) != null ? _a3 : "Unknown error" }));
       return;
     }
     state.truncateAt(userMessageId);
@@ -41263,12 +41515,12 @@ var ConversationController = class {
       saveError = e instanceof Error ? e.message : "Failed to save";
     }
     if (saveError) {
-      new import_obsidian6.Notice(
+      new import_obsidian8.Notice(
         mode === "conversation" ? t("chat.rewind.noticeConversationOnlySaveFailed", { error: saveError }) : t("chat.rewind.noticeSaveFailed", { count: String(filesChanged), error: saveError })
       );
       return;
     }
-    new import_obsidian6.Notice(
+    new import_obsidian8.Notice(
       mode === "conversation" ? t("chat.rewind.noticeConversationOnly") : t("chat.rewind.notice", { count: String(filesChanged) })
     );
   }
@@ -41408,21 +41660,23 @@ var ConversationController = class {
    * Shared implementation for updateHistoryDropdown() and renderHistoryDropdown().
    */
   renderHistoryItems(container, options) {
-    var _a3, _b;
+    var _a3, _b, _c;
     const { plugin, state } = this.deps;
-    container.empty();
-    const dropdownHeader = container.createDiv({ cls: "claudian-history-header" });
-    dropdownHeader.createSpan({ text: "Conversations" });
-    const list = container.createDiv({ cls: "claudian-history-list" });
+    const list = this.ensureHistoryChrome(container, options);
+    list.empty();
     const allConversations = plugin.getConversationList();
     if (allConversations.length === 0) {
       list.createDiv({ cls: "claudian-history-empty", text: "No conversations" });
       return;
     }
-    const conversations = [...allConversations].sort((a, b) => {
+    const conversations = [...allConversations].filter((conv) => conversationMatchesFilter(conv, this.historyFilterQuery)).sort((a, b) => {
       var _a4, _b2;
       return ((_a4 = b.lastResponseAt) != null ? _a4 : b.createdAt) - ((_b2 = a.lastResponseAt) != null ? _b2 : a.createdAt);
     });
+    if (conversations.length === 0) {
+      list.createDiv({ cls: "claudian-history-empty", text: "No matching chats" });
+      return;
+    }
     for (const conv of conversations) {
       const fallbackOpenState = conv.id === state.currentConversationId ? "current" : "closed";
       const conversationStatus = this.getHistoryConversationStatus(conv.id, fallbackOpenState, options);
@@ -41444,42 +41698,56 @@ var ConversationController = class {
         item.setAttribute("data-tab-index", String(conversationStatus.tabIndex));
       }
       const iconEl = item.createDiv({ cls: "claudian-history-item-icon" });
-      (0, import_obsidian6.setIcon)(iconEl, this.getHistoryItemIcon(openState, isRunning));
+      (0, import_obsidian8.setIcon)(iconEl, this.getHistoryItemIcon(openState, isRunning));
       const content = item.createDiv({ cls: "claudian-history-item-content" });
       const titleEl = content.createDiv({ cls: "claudian-history-item-title", text: conv.title });
       titleEl.setAttribute("title", conv.title);
+      const preview = (_b = conv.preview) == null ? void 0 : _b.trim();
+      if (preview) {
+        const previewEl = content.createDiv({
+          cls: "claudian-history-item-preview",
+          text: preview
+        });
+        previewEl.setAttribute("title", preview);
+      }
       content.createDiv({
         cls: "claudian-history-item-date",
-        text: this.getHistoryItemStatusText(conversationStatus, (_b = conv.lastResponseAt) != null ? _b : conv.createdAt)
+        text: this.getHistoryItemStatusText(conversationStatus, (_c = conv.lastResponseAt) != null ? _c : conv.createdAt)
       });
-      if (!isCurrent) {
-        content.addEventListener("click", (e) => {
-          e.stopPropagation();
-          if (this.isHistoryNewTabModifierClick(e) && options.onOpenConversationInNewTab) {
-            e.preventDefault();
-            runConversationAction(
-              () => this.runHistoryAction(
-                () => {
-                  var _a4;
-                  return (_a4 = options.onOpenConversationInNewTab) == null ? void 0 : _a4.call(options, conv.id, true);
-                },
-                "Failed to load conversation"
-              ),
-              "Failed to load conversation"
-            );
-            return;
-          }
+      const selectConversation = (e) => {
+        e.stopPropagation();
+        if (this.isHistoryNewTabModifierClick(e) && options.onOpenConversationInNewTab) {
+          e.preventDefault();
           runConversationAction(
             () => this.runHistoryAction(
-              () => options.onSelectConversation(conv.id),
+              () => {
+                var _a4;
+                return (_a4 = options.onOpenConversationInNewTab) == null ? void 0 : _a4.call(options, conv.id, true);
+              },
               "Failed to load conversation"
             ),
             "Failed to load conversation"
           );
+          return;
+        }
+        runConversationAction(
+          () => this.runHistoryAction(
+            () => options.onSelectConversation(conv.id),
+            "Failed to load conversation"
+          ),
+          "Failed to load conversation"
+        );
+      };
+      if (!isCurrent) {
+        content.addEventListener("click", selectConversation);
+        item.addEventListener("click", (e) => {
+          var _a4;
+          const target = e.target;
+          if ((_a4 = target == null ? void 0 : target.closest) == null ? void 0 : _a4.call(target, ".claudian-history-item-actions")) return;
+          selectConversation(e);
         });
         if (options.onOpenConversationInNewTab) {
-          content.addEventListener("auxclick", (e) => {
-            if (e.button !== 1) return;
+          const openInNewTab = (e) => {
             e.preventDefault();
             e.stopPropagation();
             runConversationAction(
@@ -41492,6 +41760,17 @@ var ConversationController = class {
               ),
               "Failed to load conversation"
             );
+          };
+          content.addEventListener("auxclick", (e) => {
+            if (e.button !== 1) return;
+            openInNewTab(e);
+          });
+          item.addEventListener("auxclick", (e) => {
+            var _a4;
+            if (e.button !== 1) return;
+            const target = e.target;
+            if ((_a4 = target == null ? void 0 : target.closest) == null ? void 0 : _a4.call(target, ".claudian-history-item-actions")) return;
+            openInNewTab(e);
           });
         }
       }
@@ -41503,11 +41782,11 @@ var ConversationController = class {
       const actions = item.createDiv({ cls: "claudian-history-item-actions" });
       if (conv.titleGenerationStatus === "pending") {
         const loadingEl = actions.createEl("span", { cls: "claudian-action-btn claudian-action-loading" });
-        (0, import_obsidian6.setIcon)(loadingEl, "loader-2");
+        (0, import_obsidian8.setIcon)(loadingEl, "loader-2");
         loadingEl.setAttribute("aria-label", "Generating title...");
       } else if (conv.titleGenerationStatus === "failed") {
         const regenerateBtn = actions.createEl("button", { cls: "claudian-action-btn" });
-        (0, import_obsidian6.setIcon)(regenerateBtn, "refresh-cw");
+        (0, import_obsidian8.setIcon)(regenerateBtn, "refresh-cw");
         regenerateBtn.setAttribute("aria-label", "Regenerate title");
         regenerateBtn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -41521,7 +41800,7 @@ var ConversationController = class {
         const openInNewTabBtn = actions.createEl("button", {
           cls: "claudian-action-btn claudian-open-new-tab-btn"
         });
-        (0, import_obsidian6.setIcon)(openInNewTabBtn, "square-plus");
+        (0, import_obsidian8.setIcon)(openInNewTabBtn, "square-plus");
         openInNewTabBtn.setAttribute("aria-label", "Open in new tab");
         openInNewTabBtn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -41538,14 +41817,14 @@ var ConversationController = class {
         });
       }
       const renameBtn = actions.createEl("button", { cls: "claudian-action-btn" });
-      (0, import_obsidian6.setIcon)(renameBtn, "pencil");
+      (0, import_obsidian8.setIcon)(renameBtn, "pencil");
       renameBtn.setAttribute("aria-label", "Rename");
       renameBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         this.showRenameInput(item, conv.id, conv.title);
       });
       const deleteBtn = actions.createEl("button", { cls: "claudian-action-btn claudian-delete-btn" });
-      (0, import_obsidian6.setIcon)(deleteBtn, "trash-2");
+      (0, import_obsidian8.setIcon)(deleteBtn, "trash-2");
       deleteBtn.setAttribute("aria-label", "Delete");
       deleteBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -41558,6 +41837,33 @@ var ConversationController = class {
         );
       });
     }
+  }
+  ensureHistoryChrome(container, options) {
+    const existingList = container.querySelector(".claudian-history-list");
+    if (existingList) {
+      const search2 = container.querySelector(".claudian-history-search");
+      if (search2 && search2.value !== this.historyFilterQuery) {
+        search2.value = this.historyFilterQuery;
+      }
+      return existingList;
+    }
+    container.empty();
+    const dropdownHeader = container.createDiv({ cls: "claudian-history-header" });
+    dropdownHeader.createSpan({ cls: "claudian-history-header-title", text: "Chats" });
+    const search = dropdownHeader.createEl("input", {
+      cls: "claudian-history-search",
+      attr: {
+        type: "search",
+        placeholder: "Filter chats",
+        "aria-label": "Filter chats"
+      }
+    });
+    search.value = this.historyFilterQuery;
+    search.addEventListener("input", () => {
+      this.historyFilterQuery = search.value;
+      options.onRerender();
+    });
+    return container.createDiv({ cls: "claudian-history-list" });
   }
   getHistoryConversationStatus(conversationId, fallbackOpenState, options) {
     var _a3, _b, _c;
@@ -41609,11 +41915,11 @@ var ConversationController = class {
     try {
       await action();
     } catch (e) {
-      new import_obsidian6.Notice(errorMessage);
+      new import_obsidian8.Notice(errorMessage);
     }
   }
   showHistoryContextMenu(item, conversationId, title, isCurrent, options, event) {
-    const menu = new import_obsidian6.Menu();
+    const menu = new import_obsidian8.Menu();
     const fallbackOpenState = isCurrent ? "current" : "closed";
     const { openState } = this.getHistoryConversationStatus(conversationId, fallbackOpenState, options);
     if (openState !== "current") {
@@ -41683,7 +41989,7 @@ var ConversationController = class {
         await this.deps.plugin.renameConversation(convId, newTitle);
         this.updateHistoryDropdown();
       } catch (e) {
-        new import_obsidian6.Notice("Failed to rename conversation");
+        new import_obsidian8.Notice("Failed to rename conversation");
       }
     };
     input.addEventListener("blur", () => {
@@ -41701,48 +42007,21 @@ var ConversationController = class {
   // ============================================
   // Welcome & Greeting
   // ============================================
-  /** Generates a dynamic greeting based on time/day. */
+  /** Greeting that names the open note. */
   getGreeting() {
-    var _a3;
-    const now = /* @__PURE__ */ new Date();
-    const hour = now.getHours();
-    const day = now.getDay();
-    const name = (_a3 = this.deps.plugin.settings.userName) == null ? void 0 : _a3.trim();
-    const personalize = (base, noNameFallback) => name ? `${base}, ${name}` : noNameFallback != null ? noNameFallback : base;
-    const dayGreetings = {
-      0: [personalize("Happy Sunday"), "Sunday session?", "Welcome to the weekend"],
-      1: [personalize("Happy Monday"), personalize("Back at it", "Back at it!")],
-      2: [personalize("Happy Tuesday")],
-      3: [personalize("Happy Wednesday")],
-      4: [personalize("Happy Thursday")],
-      5: [personalize("Happy Friday"), personalize("That Friday feeling")],
-      6: [personalize("Happy Saturday", "Happy Saturday!"), personalize("Welcome to the weekend")]
-    };
-    const getTimeGreetings = () => {
-      if (hour >= 5 && hour < 12) {
-        return [personalize("Good morning")];
-      } else if (hour >= 12 && hour < 18) {
-        return [personalize("Good afternoon"), personalize("Hey there"), personalize("How's it going") + "?"];
-      } else if (hour >= 18 && hour < 22) {
-        return [personalize("Good evening"), personalize("Evening"), personalize("How was your day") + "?"];
-      } else {
-        return ["Hello, night owl", personalize("Evening")];
-      }
-    };
-    const generalGreetings = [
-      personalize("Hey there"),
-      name ? `Hi ${name}, how are you?` : "Hi, how are you?",
-      personalize("How's it going") + "?",
-      personalize("Welcome back") + "!",
-      personalize("What's new") + "?",
-      ...name ? [`${name} returns!`] : []
-    ];
-    const allGreetings = [
-      ...dayGreetings[day] || [],
-      ...getTimeGreetings(),
-      ...generalGreetings
-    ];
-    return allGreetings[Math.floor(Math.random() * allGreetings.length)];
+    var _a3, _b;
+    return getWelcomeCopy((_b = (_a3 = this.deps.getFileContextManager()) == null ? void 0 : _a3.getCurrentNotePath()) != null ? _b : null).greeting;
+  }
+  /** Updates welcome copy when the active note changes. */
+  refreshWelcome() {
+    var _a3, _b;
+    const welcomeEl = this.deps.getWelcomeEl();
+    if (!welcomeEl) return;
+    paintWelcome(
+      welcomeEl,
+      getWelcomeCopy((_b = (_a3 = this.deps.getFileContextManager()) == null ? void 0 : _a3.getCurrentNotePath()) != null ? _b : null)
+    );
+    this.updateWelcomeVisibility();
   }
   /** Updates welcome element visibility based on message count. */
   updateWelcomeVisibility() {
@@ -41764,10 +42043,7 @@ var ConversationController = class {
     const fileCtx = this.deps.getFileContextManager();
     fileCtx == null ? void 0 : fileCtx.resetForNewConversation();
     fileCtx == null ? void 0 : fileCtx.autoAttachActiveFile();
-    if (!welcomeEl.querySelector(".claudian-welcome-greeting")) {
-      welcomeEl.createDiv({ cls: "claudian-welcome-greeting", text: this.getGreeting() });
-    }
-    this.updateWelcomeVisibility();
+    this.refreshWelcome();
   }
   // ============================================
   // Utilities
@@ -41838,7 +42114,7 @@ var ConversationController = class {
 };
 
 // src/features/chat/controllers/InputController.ts
-var import_obsidian11 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 
 // src/core/runtime/QueuedTurn.ts
 function cloneChatTurnRequest(request) {
@@ -41846,6 +42122,7 @@ function cloneChatTurnRequest(request) {
     ...request,
     images: cloneImages(request.images),
     externalContextPaths: request.externalContextPaths ? [...request.externalContextPaths] : void 0,
+    attachedFilePaths: request.attachedFilePaths ? [...request.attachedFilePaths] : void 0,
     enabledMcpServers: request.enabledMcpServers ? new Set(request.enabledMcpServers) : void 0
   };
 }
@@ -41860,6 +42137,10 @@ function mergeQueuedChatTurns(existing, incoming) {
       text: mergeText(existingRequest.text, incomingRequest.text),
       images: mergeImages(existingRequest.images, incomingRequest.images),
       currentNotePath: (_a3 = incomingRequest.currentNotePath) != null ? _a3 : existingRequest.currentNotePath,
+      attachedFilePaths: mergeStringLists(
+        existingRequest.attachedFilePaths,
+        incomingRequest.attachedFilePaths
+      ),
       externalContextPaths: mergeStringLists(
         existingRequest.externalContextPaths,
         incomingRequest.externalContextPaths
@@ -41900,7 +42181,7 @@ function mergeSets(first, second) {
 }
 
 // src/shared/components/ResumeSessionDropdown.ts
-var import_obsidian7 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 var ResumeSessionDropdown = class {
   constructor(containerEl, inputEl, conversations, currentConversationId, callbacks) {
     this.selectedIndex = 0;
@@ -42003,7 +42284,7 @@ var ResumeSessionDropdown = class {
       if (isCurrent) item.addClass("current");
       if (i === this.selectedIndex) item.addClass("selected");
       const iconEl = item.createDiv({ cls: "claudian-resume-item-icon" });
-      (0, import_obsidian7.setIcon)(iconEl, isCurrent ? "message-square-dot" : "message-square");
+      (0, import_obsidian9.setIcon)(iconEl, isCurrent ? "message-square-dot" : "message-square");
       const content = item.createDiv({ cls: "claudian-resume-item-content" });
       const titleEl = content.createDiv({ cls: "claudian-resume-item-title", text: conv.title });
       titleEl.setAttribute("title", conv.title);
@@ -42035,8 +42316,8 @@ var ResumeSessionDropdown = class {
 };
 
 // src/shared/modals/InstructionConfirmModal.ts
-var import_obsidian8 = require("obsidian");
-var InstructionModal = class extends import_obsidian8.Modal {
+var import_obsidian10 = require("obsidian");
+var InstructionModal = class extends import_obsidian10.Modal {
   constructor(app, rawInstruction, callbacks) {
     super(app);
     this.state = "loading";
@@ -42080,7 +42361,7 @@ var InstructionModal = class extends import_obsidian8.Modal {
     const responseSection = this.clarificationEl.createDiv({ cls: "claudian-instruction-section" });
     const responseLabel = responseSection.createDiv({ cls: "claudian-instruction-label" });
     responseLabel.setText("Your response:");
-    this.responseTextarea = new import_obsidian8.TextAreaComponent(responseSection);
+    this.responseTextarea = new import_obsidian10.TextAreaComponent(responseSection);
     this.responseTextarea.inputEl.addClass("claudian-instruction-response-textarea");
     this.responseTextarea.inputEl.rows = 3;
     this.responseTextarea.inputEl.placeholder = "Provide more details...";
@@ -42098,7 +42379,7 @@ var InstructionModal = class extends import_obsidian8.Modal {
     this.refinedDisplayEl = refinedSection.createDiv({ cls: "claudian-instruction-refined" });
     this.editContainerEl = refinedSection.createDiv({ cls: "claudian-instruction-edit-container" });
     this.editContainerEl.addClass("claudian-hidden");
-    this.editTextarea = new import_obsidian8.TextAreaComponent(this.editContainerEl);
+    this.editTextarea = new import_obsidian10.TextAreaComponent(this.editContainerEl);
     this.editTextarea.inputEl.addClass("claudian-instruction-edit-textarea");
     this.editTextarea.inputEl.rows = 4;
     this.buttonsEl = contentEl.createDiv({ cls: "claudian-instruction-buttons" });
@@ -42242,8 +42523,8 @@ var InstructionModal = class extends import_obsidian8.Modal {
 };
 
 // src/utils/markdown.ts
-function appendMarkdownSnippet(existingPrompt, snippet) {
-  const trimmedSnippet = snippet.trim();
+function appendMarkdownSnippet(existingPrompt, snippet2) {
+  const trimmedSnippet = snippet2.trim();
   if (!trimmedSnippet) {
     return existingPrompt;
   }
@@ -42255,117 +42536,8 @@ function appendMarkdownSnippet(existingPrompt, snippet) {
 }
 
 // src/features/chat/constants.ts
-var COMPLETION_FLAVOR_WORDS = [
-  "Baked",
-  "Cooked",
-  "Crunched",
-  "Brewed",
-  "Crafted",
-  "Forged",
-  "Conjured",
-  "Whipped up",
-  "Stirred",
-  "Simmered",
-  "Toasted",
-  "Saut\xE9ed",
-  "Finagled",
-  "Marinated",
-  "Distilled",
-  "Fermented",
-  "Percolated",
-  "Steeped",
-  "Roasted",
-  "Cured",
-  "Smoked",
-  "Cogitated"
-];
-var FLAVOR_TEXTS = [
-  // Classic
-  "Thinking...",
-  "Pondering...",
-  "Processing...",
-  "Analyzing...",
-  "Considering...",
-  "Working on it...",
-  "Vibing...",
-  "One moment...",
-  "On it...",
-  // Thoughtful
-  "Ruminating...",
-  "Contemplating...",
-  "Reflecting...",
-  "Mulling it over...",
-  "Let me think...",
-  "Hmm...",
-  "Cogitating...",
-  "Deliberating...",
-  "Weighing options...",
-  "Gathering thoughts...",
-  // Playful
-  "Brewing ideas...",
-  "Connecting dots...",
-  "Assembling thoughts...",
-  "Spinning up neurons...",
-  "Loading brilliance...",
-  "Consulting the oracle...",
-  "Summoning knowledge...",
-  "Crunching thoughts...",
-  "Dusting off neurons...",
-  "Wrangling ideas...",
-  "Herding thoughts...",
-  "Juggling concepts...",
-  "Untangling this...",
-  "Piecing it together...",
-  // Cozy
-  "Sipping coffee...",
-  "Warming up...",
-  "Getting cozy with this...",
-  "Settling in...",
-  "Making tea...",
-  "Grabbing a snack...",
-  // Technical
-  "Parsing...",
-  "Compiling thoughts...",
-  "Running inference...",
-  "Querying the void...",
-  "Defragmenting brain...",
-  "Allocating memory...",
-  "Optimizing...",
-  "Indexing...",
-  "Syncing neurons...",
-  // Zen
-  "Breathing...",
-  "Finding clarity...",
-  "Channeling focus...",
-  "Centering...",
-  "Aligning chakras...",
-  "Meditating on this...",
-  // Whimsical
-  "Asking the stars...",
-  "Reading tea leaves...",
-  "Shaking the magic 8-ball...",
-  "Consulting ancient scrolls...",
-  "Decoding the matrix...",
-  "Communing with the ether...",
-  "Peering into the abyss...",
-  "Channeling the cosmos...",
-  // Action
-  "Diving in...",
-  "Rolling up sleeves...",
-  "Getting to work...",
-  "Tackling this...",
-  "On the case...",
-  "Investigating...",
-  "Exploring...",
-  "Digging deeper...",
-  // Casual
-  "Bear with me...",
-  "Hang tight...",
-  "Just a sec...",
-  "Working my magic...",
-  "Almost there...",
-  "Give me a moment..."
-];
+var THINKING_STATUS_TEXT = "Thinking...";
+var MIN_VISIBLE_RESPONSE_SECONDS = 5;
 
 // src/features/chat/rendering/InlineAskUserQuestion.ts
 var HINTS_TEXT = "Enter to select \xB7 Tab/Arrow keys to navigate \xB7 Esc to cancel";
@@ -43331,7 +43503,7 @@ var InlinePlanApproval = class {
 };
 
 // src/features/chat/rendering/ToolCallRenderer.ts
-var import_obsidian10 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 
 // src/core/tools/toolIcons.ts
 var TOOL_ICONS = {
@@ -43461,6 +43633,94 @@ function isTextBlock(block) {
   if (!block || typeof block !== "object") return false;
   const record2 = block;
   return record2.type === "text" && typeof record2.text === "string";
+}
+
+// src/shared/icons.ts
+var SVG_NS = "http://www.w3.org/2000/svg";
+var MCP_ICON_PATHS = [
+  "M15.688 2.343a2.588 2.588 0 00-3.61 0l-9.626 9.44a.863.863 0 01-1.203 0 .823.823 0 010-1.18l9.626-9.44a4.313 4.313 0 016.016 0 4.116 4.116 0 011.204 3.54 4.3 4.3 0 013.609 1.18l.05.05a4.115 4.115 0 010 5.9l-8.706 8.537a.274.274 0 000 .393l1.788 1.754a.823.823 0 010 1.18.863.863 0 01-1.203 0l-1.788-1.753a1.92 1.92 0 010-2.754l8.706-8.538a2.47 2.47 0 000-3.54l-.05-.049a2.588 2.588 0 00-3.607-.003l-7.172 7.034-.002.002-.098.097a.863.863 0 01-1.204 0 .823.823 0 010-1.18l7.273-7.133a2.47 2.47 0 00-.003-3.537z",
+  "M14.485 4.703a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a4.115 4.115 0 000 5.9 4.314 4.314 0 006.016 0l7.12-6.982a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a2.588 2.588 0 01-3.61 0 2.47 2.47 0 010-3.54l7.12-6.982z"
+];
+function createSvgElement(ownerDocument, tagName) {
+  return ownerDocument.createElementNS(SVG_NS, tagName);
+}
+function appendMcpIcon(container) {
+  container.empty();
+  const svg = createSvgElement(container.ownerDocument, "svg");
+  svg.setAttribute("fill", "currentColor");
+  svg.setAttribute("fill-rule", "evenodd");
+  svg.setAttribute("height", "1em");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "1em");
+  const title = createSvgElement(container.ownerDocument, "title");
+  title.textContent = "MCP";
+  svg.appendChild(title);
+  for (const pathData of MCP_ICON_PATHS) {
+    const path7 = createSvgElement(container.ownerDocument, "path");
+    path7.setAttribute("d", pathData);
+    svg.appendChild(path7);
+  }
+  container.appendChild(svg);
+}
+function appendCheckIcon(container) {
+  container.empty();
+  const svg = createSvgElement(container.ownerDocument, "svg");
+  svg.setAttribute("width", "12");
+  svg.setAttribute("height", "12");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "3");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  const polyline = createSvgElement(container.ownerDocument, "polyline");
+  polyline.setAttribute("points", "20 6 9 17 4 12");
+  svg.appendChild(polyline);
+  container.appendChild(svg);
+}
+function createProviderIconSvg(icon, options = {}) {
+  var _a3;
+  const ownerDocument = (_a3 = options.ownerDocument) != null ? _a3 : window.document;
+  const svg = ownerDocument.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", icon.viewBox);
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("aria-hidden", "true");
+  svg.classList.add("claudian-provider-icon");
+  if (options.width !== void 0) {
+    svg.setAttribute("width", String(options.width));
+  }
+  if (options.height !== void 0) {
+    svg.setAttribute("height", String(options.height));
+  }
+  if (options.className) {
+    svg.classList.add(...options.className.split(/\s+/).filter(Boolean));
+  }
+  if (options.dataProvider) {
+    svg.setAttribute("data-provider", options.dataProvider);
+  }
+  if (icon.kind === "composite") {
+    for (const child of icon.children) {
+      svg.appendChild(createProviderSvgChild(child, ownerDocument));
+    }
+    return svg;
+  }
+  const path7 = ownerDocument.createElementNS(SVG_NS, "path");
+  path7.setAttribute("d", icon.path);
+  path7.setAttribute("fill", "currentColor");
+  svg.appendChild(path7);
+  return svg;
+}
+function createProviderSvgChild(child, ownerDocument) {
+  const element = ownerDocument.createElementNS(SVG_NS, child.tag);
+  for (const [name, value] of Object.entries(child.attributes)) {
+    element.setAttribute(name, value);
+  }
+  if (child.tag === "g") {
+    for (const nestedChild of child.children) {
+      element.appendChild(createProviderSvgChild(nestedChild, ownerDocument));
+    }
+  }
+  return element;
 }
 
 // src/utils/diff.ts
@@ -43844,7 +44104,7 @@ function renderDiffContent(containerEl, diffLines, contextLines = 3) {
 }
 
 // src/features/chat/rendering/todoUtils.ts
-var import_obsidian9 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 function getTodoStatusIcon(status) {
   return status === "completed" ? "check" : "dot";
 }
@@ -43857,7 +44117,7 @@ function renderTodoItems(container, todos) {
     const item = container.createDiv({ cls: `claudian-todo-item claudian-todo-${todo.status}` });
     const icon = item.createSpan({ cls: "claudian-todo-status-icon" });
     icon.setAttribute("aria-hidden", "true");
-    (0, import_obsidian9.setIcon)(icon, getTodoStatusIcon(todo.status));
+    (0, import_obsidian11.setIcon)(icon, getTodoStatusIcon(todo.status));
     const text = item.createSpan({ cls: "claudian-todo-text" });
     text.setText(getTodoDisplayText(todo));
   }
@@ -43869,7 +44129,7 @@ function setToolIcon(el, name) {
   if (icon === MCP_ICON_MARKER) {
     appendMcpIcon(el);
   } else {
-    (0, import_obsidian10.setIcon)(el, icon);
+    (0, import_obsidian12.setIcon)(el, icon);
   }
 }
 function stringifyToolValue(value) {
@@ -44109,7 +44369,7 @@ function appendToolLink(parent, title, url2) {
   linkEl.setAttribute("target", "_blank");
   linkEl.setAttribute("rel", "noopener noreferrer");
   const iconEl = linkEl.createSpan({ cls: "claudian-tool-link-icon" });
-  (0, import_obsidian10.setIcon)(iconEl, "external-link");
+  (0, import_obsidian12.setIcon)(iconEl, "external-link");
   linkEl.createSpan({ cls: "claudian-tool-link-title", text: title });
 }
 function isPlaceholderWebSearchResult(result) {
@@ -44458,12 +44718,12 @@ function setTodoWriteStatus(statusEl, input) {
   const status = isComplete ? "completed" : "running";
   const ariaLabel = isComplete ? "Status: completed" : "Status: in progress";
   resetStatusElement(statusEl, `status-${status}`, ariaLabel);
-  if (isComplete) (0, import_obsidian10.setIcon)(statusEl, "check");
+  if (isComplete) (0, import_obsidian12.setIcon)(statusEl, "check");
 }
 function setToolStatus(statusEl, status) {
   resetStatusElement(statusEl, `status-${status}`, `Status: ${status}`);
   const icon = STATUS_ICONS[status];
-  if (icon) (0, import_obsidian10.setIcon)(statusEl, icon);
+  if (icon) (0, import_obsidian12.setIcon)(statusEl, icon);
 }
 function setApplyPatchHeaderRight(statusEl, toolCall) {
   const isError = toolCall.status === "error" || toolCall.status === "blocked";
@@ -44952,7 +45212,7 @@ var InputController = class {
     if (this.deps.ensureServiceInitialized) {
       const ready = await this.deps.ensureServiceInitialized();
       if (!ready) {
-        new import_obsidian11.Notice("Failed to initialize agent service. Please try again.");
+        new import_obsidian13.Notice("Failed to initialize agent service. Please try again.");
         streamController.hideThinkingIndicator();
         state.isStreaming = false;
         this.activeStreamingAssistantMessage = null;
@@ -44962,7 +45222,7 @@ var InputController = class {
     }
     const agentService = this.getAgentService();
     if (!agentService) {
-      new import_obsidian11.Notice("Agent service not available. Please reload the plugin.");
+      new import_obsidian13.Notice("Agent service not available. Please reload the plugin.");
       this.activeStreamingAssistantMessage = null;
       this.resetProviderMessageBoundaryState();
       return;
@@ -45019,7 +45279,7 @@ var InputController = class {
       if (!wasInvalidated && state.streamGeneration === streamGeneration) {
         const didCancelThisTurn = wasInterrupted || state.cancelRequested;
         if (didCancelThisTurn && !state.pendingNewSessionPlan) {
-          await streamController.appendText('\n\n<span class="claudian-interrupted">Interrupted</span> <span class="claudian-interrupted-hint">\xB7 What should Claudian do instead?</span>');
+          await streamController.appendText('\n\n<span class="claudian-interrupted">Interrupted</span> <span class="claudian-interrupted-hint">\xB7 Send a follow-up.</span>');
         }
         streamController.hideThinkingIndicator();
         state.isStreaming = false;
@@ -45028,14 +45288,12 @@ var InputController = class {
         const hasCompactBoundary = (_j = finalAssistantMsg.contentBlocks) == null ? void 0 : _j.some((b) => b.type === "context_compacted");
         if (!didCancelThisTurn && !hasCompactBoundary) {
           const durationSeconds = state.responseStartTime ? Math.floor((performance.now() - state.responseStartTime) / 1e3) : 0;
-          if (durationSeconds > 0) {
-            const flavorWord = COMPLETION_FLAVOR_WORDS[Math.floor(Math.random() * COMPLETION_FLAVOR_WORDS.length)];
+          if (durationSeconds >= MIN_VISIBLE_RESPONSE_SECONDS) {
             finalAssistantMsg.durationSeconds = durationSeconds;
-            finalAssistantMsg.durationFlavorWord = flavorWord;
             if (state.currentContentEl) {
               const footerEl = state.currentContentEl.createDiv({ cls: "claudian-response-footer" });
               footerEl.createSpan({
-                text: `* ${flavorWord} for ${formatDurationMmSs(durationSeconds)}`,
+                text: formatDurationMmSs(durationSeconds),
                 cls: "claudian-baked-duration"
               });
             }
@@ -45223,7 +45481,7 @@ var InputController = class {
     );
   }
   buildTurnSubmission(options) {
-    var _a3, _b;
+    var _a3, _b, _c;
     const {
       selectionController,
       browserSelectionController,
@@ -45234,6 +45492,10 @@ var InputController = class {
     const externalContextSelector = this.deps.getExternalContextSelector();
     const currentNotePath = (fileContextManager == null ? void 0 : fileContextManager.getCurrentNotePath()) || null;
     const shouldSendCurrentNote = (_a3 = fileContextManager == null ? void 0 : fileContextManager.shouldSendCurrentNote(currentNotePath)) != null ? _a3 : false;
+    const sendNoteEveryTurn = (() => {
+      const runtime = this.getAgentService();
+      return !!runtime && !runtime.getCapabilities().supportsPersistentRuntime;
+    })();
     const editorContext = options.editorContextOverride !== void 0 ? options.editorContextOverride : selectionController.getContext();
     const browserContext = options.browserContextOverride !== void 0 ? options.browserContextOverride : (_b = browserSelectionController == null ? void 0 : browserSelectionController.getContext()) != null ? _b : null;
     const canvasContext = options.canvasContextOverride !== void 0 ? options.canvasContextOverride : canvasSelectionController.getContext();
@@ -45241,12 +45503,14 @@ var InputController = class {
     const isCompact = /^\/compact(\s|$)/i.test(options.content);
     const transformedText = !isCompact && fileContextManager ? fileContextManager.transformContextMentions(options.content) : options.content;
     const enabledMcpServers = mcpServerSelector == null ? void 0 : mcpServerSelector.getEnabledServers();
+    const attachedFiles = !isCompact ? (_c = fileContextManager == null ? void 0 : fileContextManager.getAttachedFiles) == null ? void 0 : _c.call(fileContextManager) : void 0;
     return {
       displayContent: options.content,
       turnRequest: {
         text: transformedText,
         images: options.images,
-        currentNotePath: shouldSendCurrentNote && currentNotePath ? currentNotePath : void 0,
+        currentNotePath: (shouldSendCurrentNote || sendNoteEveryTurn) && currentNotePath ? currentNotePath : void 0,
+        attachedFilePaths: attachedFiles && attachedFiles.size > 0 ? Array.from(attachedFiles) : void 0,
         editorSelection: editorContext,
         browserSelection: browserContext,
         canvasSelection: canvasContext,
@@ -45277,7 +45541,7 @@ var InputController = class {
         type: "button"
       }
     });
-    (0, import_obsidian11.setIcon)(button, icon);
+    (0, import_obsidian13.setIcon)(button, icon);
     return button;
   }
   canSteerQueuedMessage() {
@@ -45393,7 +45657,7 @@ var InputController = class {
       });
     } catch (e) {
       this.restoreQueuedMessageAfterSteerFailure(queuedMessage);
-      new import_obsidian11.Notice("Failed to steer the queued Codex message. It is still available.");
+      new import_obsidian13.Notice("Failed to steer the queued Codex message. It is still available.");
     }
   }
   restoreQueuedMessageAfterSteerFailure(message) {
@@ -45635,7 +45899,7 @@ var InputController = class {
               const currentPrompt = plugin.settings.systemPrompt;
               plugin.settings.systemPrompt = appendMarkdownSnippet(currentPrompt, finalInstruction);
               await plugin.saveSettings();
-              new import_obsidian11.Notice("Instruction added to custom system prompt");
+              new import_obsidian13.Notice("Instruction added to custom system prompt");
               instructionModeManager == null ? void 0 : instructionModeManager.clear();
             })();
           },
@@ -45654,7 +45918,7 @@ var InputController = class {
               if (result2.error === "Cancelled") {
                 return;
               }
-              new import_obsidian11.Notice(result2.error || "Failed to process response");
+              new import_obsidian13.Notice(result2.error || "Failed to process response");
               modal == null ? void 0 : modal.showError(result2.error || "Failed to process response");
               return;
             }
@@ -45681,7 +45945,7 @@ var InputController = class {
           instructionModeManager == null ? void 0 : instructionModeManager.clear();
           return;
         }
-        new import_obsidian11.Notice(result.error || "Failed to refine instruction");
+        new import_obsidian13.Notice(result.error || "Failed to refine instruction");
         modal.showError(result.error || "Failed to refine instruction");
         instructionModeManager == null ? void 0 : instructionModeManager.clear();
         return;
@@ -45691,13 +45955,13 @@ var InputController = class {
       } else if (result.refinedInstruction) {
         modal.showConfirmation(result.refinedInstruction);
       } else {
-        new import_obsidian11.Notice("No instruction received");
+        new import_obsidian13.Notice("No instruction received");
         modal.showError("No instruction received");
         instructionModeManager == null ? void 0 : instructionModeManager.clear();
       }
     } catch (error48) {
       const errorMsg = error48 instanceof Error ? error48.message : "Unknown error";
-      new import_obsidian11.Notice(`Error: ${errorMsg}`);
+      new import_obsidian13.Notice(`Error: ${errorMsg}`);
       modal == null ? void 0 : modal.showError(errorMsg);
       instructionModeManager == null ? void 0 : instructionModeManager.clear();
     }
@@ -45765,7 +46029,7 @@ var InputController = class {
     const selected = Object.values(result)[0];
     const selectedValue = Array.isArray(selected) ? selected[0] : selected;
     if (typeof selectedValue !== "string") {
-      new import_obsidian11.Notice(`Unexpected approval selection: "${String(selectedValue)}"`);
+      new import_obsidian13.Notice(`Unexpected approval selection: "${String(selectedValue)}"`);
       return "cancel";
     }
     const decision = optionDecisionMap.get(selectedValue);
@@ -45936,7 +46200,7 @@ var InputController = class {
     const { conversationController } = this.deps;
     const capabilities = this.getActiveCapabilities();
     if (!isBuiltInCommandSupported(command, capabilities)) {
-      new import_obsidian11.Notice(`/${command.name} is not supported by this provider.`);
+      new import_obsidian13.Notice(`/${command.name} is not supported by this provider.`);
       return;
     }
     switch (command.action) {
@@ -45946,14 +46210,14 @@ var InputController = class {
       case "add-dir": {
         const externalContextSelector = this.deps.getExternalContextSelector();
         if (!externalContextSelector) {
-          new import_obsidian11.Notice("External context selector not available.");
+          new import_obsidian13.Notice("External context selector not available.");
           return;
         }
         const result = externalContextSelector.addExternalContext(args);
         if (result.success) {
-          new import_obsidian11.Notice(`Added external context: ${result.normalizedPath}`);
+          new import_obsidian13.Notice(`Added external context: ${result.normalizedPath}`);
         } else {
-          new import_obsidian11.Notice(result.error);
+          new import_obsidian13.Notice(result.error);
         }
         break;
       }
@@ -45962,11 +46226,11 @@ var InputController = class {
         break;
       case "fork": {
         if (!this.getActiveCapabilities().supportsFork) {
-          new import_obsidian11.Notice("Fork is not supported by this provider.");
+          new import_obsidian13.Notice("Fork is not supported by this provider.");
           return;
         }
         if (!this.deps.onForkAll) {
-          new import_obsidian11.Notice("Fork not available.");
+          new import_obsidian13.Notice("Fork not available.");
           return;
         }
         await this.deps.onForkAll();
@@ -45974,7 +46238,7 @@ var InputController = class {
       }
       default: {
         const unknownAction = typeof command.action === "string" ? command.action : "unknown";
-        new import_obsidian11.Notice(`Unknown command: ${unknownAction}`);
+        new import_obsidian13.Notice(`Unknown command: ${unknownAction}`);
         break;
       }
     }
@@ -46003,7 +46267,7 @@ var InputController = class {
     this.destroyResumeDropdown();
     const conversations = plugin.getConversationList();
     if (conversations.length === 0) {
-      new import_obsidian11.Notice("No conversations to resume");
+      new import_obsidian13.Notice("No conversations to resume");
       return;
     }
     const openConversation = (_a3 = this.deps.openConversation) != null ? _a3 : ((id) => conversationController.switchTo(id));
@@ -46017,7 +46281,7 @@ var InputController = class {
           this.destroyResumeDropdown();
           openConversation(id).catch((err) => {
             const msg = err instanceof Error ? err.message : String(err);
-            new import_obsidian11.Notice(`Failed to open conversation: ${msg}`);
+            new import_obsidian13.Notice(`Failed to open conversation: ${msg}`);
           });
         },
         onDismiss: () => {
@@ -46163,7 +46427,7 @@ var NavigationController = class {
 };
 
 // src/features/chat/controllers/SelectionController.ts
-var import_obsidian12 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 
 // src/shared/components/SelectionHighlight.ts
 var import_state = require("@codemirror/state");
@@ -46279,7 +46543,7 @@ var SelectionController = class {
   // ============================================
   poll() {
     var _a3;
-    const view = this.app.workspace.getActiveViewOfType(import_obsidian12.MarkdownView);
+    const view = this.app.workspace.getActiveViewOfType(import_obsidian14.MarkdownView);
     if (!view) {
       this.clearWhenMarkdownContextIsUnavailable();
       return;
@@ -46540,7 +46804,7 @@ var SelectionController = class {
 };
 
 // src/features/chat/controllers/StreamController.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 
 // src/core/tools/todo.ts
 function isValidTodoItem(item) {
@@ -46677,7 +46941,7 @@ function adapterOwnsTool(adapter, toolName) {
 }
 
 // src/features/chat/rendering/SubagentRenderer.ts
-var import_obsidian13 = require("obsidian");
+var import_obsidian15 = require("obsidian");
 var SUBAGENT_TOOL_STATUS_ICONS = {
   completed: "check",
   error: "x",
@@ -46736,7 +47000,7 @@ function setSubagentToolStatus(view, status) {
   view.statusEl.setAttribute("aria-label", `Status: ${status}`);
   const statusIcon = SUBAGENT_TOOL_STATUS_ICONS[status];
   if (statusIcon) {
-    (0, import_obsidian13.setIcon)(view.statusEl, statusIcon);
+    (0, import_obsidian15.setIcon)(view.statusEl, statusIcon);
   }
 }
 function updateSubagentToolView(view, toolCall) {
@@ -46841,7 +47105,7 @@ function createSubagentBlock(parentEl, taskToolId, taskInput) {
   headerEl.setAttribute("role", "button");
   const iconEl = headerEl.createDiv({ cls: "claudian-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian13.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian15.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "claudian-subagent-label" });
   labelEl.setText(truncateDescription(description));
   const statusEl = headerEl.createDiv({ cls: "claudian-subagent-status status-running" });
@@ -46916,11 +47180,11 @@ function finalizeSubagentBlock(state, result, isError) {
   state.statusEl.addClass(`status-${state.info.status}`);
   state.statusEl.empty();
   if (state.info.status === "completed") {
-    (0, import_obsidian13.setIcon)(state.statusEl, "check");
+    (0, import_obsidian15.setIcon)(state.statusEl, "check");
     state.wrapperEl.removeClass("error");
     state.wrapperEl.addClass("done");
   } else {
-    (0, import_obsidian13.setIcon)(state.statusEl, "x");
+    (0, import_obsidian15.setIcon)(state.statusEl, "x");
     state.wrapperEl.removeClass("done");
     state.wrapperEl.addClass("error");
   }
@@ -47042,7 +47306,7 @@ function createAsyncSubagentBlock(parentEl, taskToolId, taskInput) {
   headerEl.setAttribute("aria-label", `Background task: ${description} - Initializing - click to expand`);
   const iconEl = headerEl.createDiv({ cls: "claudian-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian13.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian15.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "claudian-subagent-label" });
   labelEl.setText(truncateDescription(description));
   const statusTextEl = headerEl.createDiv({ cls: "claudian-subagent-status-text" });
@@ -47081,9 +47345,9 @@ function finalizeAsyncSubagent(state, result, isError) {
   state.statusEl.addClass(`status-${isError ? "error" : "completed"}`);
   state.statusEl.empty();
   if (isError) {
-    (0, import_obsidian13.setIcon)(state.statusEl, "x");
+    (0, import_obsidian15.setIcon)(state.statusEl, "x");
   } else {
-    (0, import_obsidian13.setIcon)(state.statusEl, "check");
+    (0, import_obsidian15.setIcon)(state.statusEl, "check");
   }
   if (isError) {
     state.wrapperEl.addClass("error");
@@ -47101,7 +47365,7 @@ function markAsyncSubagentOrphaned(state) {
   state.statusTextEl.setText("Orphaned");
   state.statusEl.className = "claudian-subagent-status status-error";
   state.statusEl.empty();
-  (0, import_obsidian13.setIcon)(state.statusEl, "alert-circle");
+  (0, import_obsidian15.setIcon)(state.statusEl, "alert-circle");
   state.wrapperEl.addClass("error");
   state.wrapperEl.addClass("orphaned");
   renderAsyncContentLikeSync(state.contentEl, state.info, "orphaned");
@@ -47128,7 +47392,7 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
   );
   const iconEl = headerEl.createDiv({ cls: "claudian-subagent-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian13.setIcon)(iconEl, getToolIcon(TOOL_TASK));
+  (0, import_obsidian15.setIcon)(iconEl, getToolIcon(TOOL_TASK));
   const labelEl = headerEl.createDiv({ cls: "claudian-subagent-label" });
   labelEl.setText(truncateDescription(subagent.description));
   const statusTextEl = headerEl.createDiv({ cls: "claudian-subagent-status-text" });
@@ -47149,13 +47413,13 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
   statusEl.setAttribute("aria-label", `Status: ${statusAriaLabel}`);
   switch (displayStatus) {
     case "completed":
-      (0, import_obsidian13.setIcon)(statusEl, "check");
+      (0, import_obsidian15.setIcon)(statusEl, "check");
       break;
     case "error":
-      (0, import_obsidian13.setIcon)(statusEl, "x");
+      (0, import_obsidian15.setIcon)(statusEl, "x");
       break;
     case "orphaned":
-      (0, import_obsidian13.setIcon)(statusEl, "alert-circle");
+      (0, import_obsidian15.setIcon)(statusEl, "alert-circle");
       break;
   }
   const contentEl = wrapperEl.createDiv({ cls: "claudian-subagent-content" });
@@ -47166,7 +47430,7 @@ function renderStoredAsyncSubagent(parentEl, subagent) {
 }
 
 // src/features/chat/rendering/WriteEditRenderer.ts
-var import_obsidian14 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 function shortenPath2(filePath, maxLength = 40) {
   if (!filePath) return "file";
   const normalized = filePath.replace(/\\/g, "/");
@@ -47195,7 +47459,7 @@ function createWriteEditBlock(parentEl, toolCall, options = {}) {
   headerEl.setAttribute("role", "button");
   const iconEl = headerEl.createDiv({ cls: "claudian-write-edit-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian14.setIcon)(iconEl, getToolIcon(toolName));
+  (0, import_obsidian16.setIcon)(iconEl, getToolIcon(toolName));
   const nameEl = headerEl.createDiv({ cls: "claudian-write-edit-name" });
   nameEl.setText(toolName);
   const summaryEl = headerEl.createDiv({ cls: "claudian-write-edit-summary" });
@@ -47239,7 +47503,7 @@ function finalizeWriteEditBlock(state, isError) {
   state.statusEl.empty();
   if (isError) {
     state.statusEl.addClass("status-error");
-    (0, import_obsidian14.setIcon)(state.statusEl, "x");
+    (0, import_obsidian16.setIcon)(state.statusEl, "x");
     state.statusEl.setAttribute("aria-label", "Status: error");
     if (!state.diffLines) {
       state.contentEl.empty();
@@ -47277,7 +47541,7 @@ function renderStoredWriteEdit(parentEl, toolCall, options = {}) {
   headerEl.setAttribute("role", "button");
   const iconEl = headerEl.createDiv({ cls: "claudian-write-edit-icon" });
   iconEl.setAttribute("aria-hidden", "true");
-  (0, import_obsidian14.setIcon)(iconEl, getToolIcon(toolName));
+  (0, import_obsidian16.setIcon)(iconEl, getToolIcon(toolName));
   const nameEl = headerEl.createDiv({ cls: "claudian-write-edit-name" });
   nameEl.setText(toolName);
   const summaryEl = headerEl.createDiv({ cls: "claudian-write-edit-summary" });
@@ -47289,7 +47553,7 @@ function renderStoredWriteEdit(parentEl, toolCall, options = {}) {
   const statusEl = headerEl.createDiv({ cls: "claudian-write-edit-status" });
   if (isError) {
     statusEl.addClass("status-error");
-    (0, import_obsidian14.setIcon)(statusEl, "x");
+    (0, import_obsidian16.setIcon)(statusEl, "x");
   }
   const contentEl = wrapperEl.createDiv({ cls: "claudian-write-edit-content" });
   const row = contentEl.createDiv({ cls: "claudian-write-edit-diff-row" });
@@ -48313,7 +48577,7 @@ var _StreamController = class _StreamController {
       if (!state.currentContentEl || state.thinkingEl || state.currentThinkingState) return;
       const cls = overrideCls ? `claudian-thinking ${overrideCls}` : "claudian-thinking";
       state.thinkingEl = state.currentContentEl.createDiv({ cls });
-      const text = overrideText || FLAVOR_TEXTS[Math.floor(Math.random() * FLAVOR_TEXTS.length)];
+      const text = overrideText || THINKING_STATUS_TEXT;
       state.thinkingEl.createSpan({ text });
       const timerSpan = state.thinkingEl.createSpan({ cls: "claudian-thinking-hint" });
       const updateTimer = () => {
@@ -48377,7 +48641,7 @@ var _StreamController = class _StreamController {
     window.setTimeout(() => {
       const { vault } = this.deps.plugin.app;
       const file2 = vault.getAbstractFileByPath(relativePath);
-      if (file2 instanceof import_obsidian15.TFile) {
+      if (file2 instanceof import_obsidian17.TFile) {
         vault.trigger("modify", file2);
       } else {
         const parentDir = relativePath.includes("/") ? relativePath.substring(0, relativePath.lastIndexOf("/")) : "";
@@ -48472,7 +48736,7 @@ _StreamController.THINKING_INDICATOR_DELAY = 400;
 var StreamController = _StreamController;
 
 // src/features/chat/rendering/MessageRenderer.ts
-var import_obsidian16 = require("obsidian");
+var import_obsidian18 = require("obsidian");
 
 // src/utils/obsidianCompat.ts
 function getVaultFileByPath(app, filePath) {
@@ -48903,6 +49167,7 @@ var MessageRenderer = class {
     this.liveMessageEls.clear();
     const newWelcomeEl = this.messagesEl.createDiv({ cls: "claudian-welcome" });
     newWelcomeEl.createDiv({ cls: "claudian-welcome-greeting", text: getGreeting() });
+    newWelcomeEl.createDiv({ cls: "claudian-welcome-hint", text: WELCOME_HINT });
     for (let i = 0; i < messages.length; i++) {
       this.renderStoredMessage(messages[i], messages, i);
     }
@@ -48999,7 +49264,7 @@ var MessageRenderer = class {
     textEl.appendText(" ");
     textEl.createSpan({
       cls: "claudian-interrupted-hint",
-      text: "\xB7 What should Claudian do instead?"
+      text: "\xB7 Send a follow-up."
     });
   }
   /**
@@ -49062,11 +49327,10 @@ var MessageRenderer = class {
       }
     }
     const hasCompactBoundary = (_c = msg.contentBlocks) == null ? void 0 : _c.some((b) => b.type === "context_compacted");
-    if (msg.durationSeconds && msg.durationSeconds > 0 && !hasCompactBoundary) {
-      const flavorWord = msg.durationFlavorWord || "Baked";
+    if (msg.durationSeconds && msg.durationSeconds >= MIN_VISIBLE_RESPONSE_SECONDS && !hasCompactBoundary) {
       const footerEl = contentEl.createDiv({ cls: "claudian-response-footer" });
       footerEl.createSpan({
-        text: `* ${flavorWord} for ${formatDurationMmSs(msg.durationSeconds)}`,
+        text: formatDurationMmSs(msg.durationSeconds),
         cls: "claudian-baked-duration"
       });
     }
@@ -49261,7 +49525,7 @@ var MessageRenderer = class {
         this.app,
         { mediaFolder: this.plugin.settings.mediaFolder }
       );
-      await import_obsidian16.MarkdownRenderer.render(
+      await import_obsidian18.MarkdownRenderer.render(
         this.app,
         processedMarkdown,
         el,
@@ -49324,7 +49588,7 @@ var MessageRenderer = class {
    */
   addTextCopyButton(textEl, markdown) {
     const copyBtn = textEl.createSpan({ cls: "claudian-text-copy-btn" });
-    (0, import_obsidian16.setIcon)(copyBtn, "copy");
+    (0, import_obsidian18.setIcon)(copyBtn, "copy");
     let feedbackTimeout = null;
     copyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -49342,7 +49606,7 @@ var MessageRenderer = class {
         copyBtn.classList.add("copied");
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
-          (0, import_obsidian16.setIcon)(copyBtn, "copy");
+          (0, import_obsidian18.setIcon)(copyBtn, "copy");
           copyBtn.classList.remove("copied");
           feedbackTimeout = null;
         }, 1500);
@@ -49379,7 +49643,7 @@ var MessageRenderer = class {
   addUserCopyButton(msgEl, content) {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const copyBtn = toolbar.createSpan({ cls: "claudian-user-msg-copy-btn" });
-    (0, import_obsidian16.setIcon)(copyBtn, "copy");
+    (0, import_obsidian18.setIcon)(copyBtn, "copy");
     copyBtn.setAttribute("aria-label", "Copy message");
     let feedbackTimeout = null;
     copyBtn.addEventListener("click", (e) => {
@@ -49396,7 +49660,7 @@ var MessageRenderer = class {
         copyBtn.classList.add("copied");
         feedbackTimeout = window.setTimeout(() => {
           copyBtn.empty();
-          (0, import_obsidian16.setIcon)(copyBtn, "copy");
+          (0, import_obsidian18.setIcon)(copyBtn, "copy");
           copyBtn.classList.remove("copied");
           feedbackTimeout = null;
         }, 1500);
@@ -49408,7 +49672,7 @@ var MessageRenderer = class {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const btn = toolbar.createSpan({ cls: "claudian-message-rewind-btn" });
     if (toolbar.firstChild !== btn) toolbar.insertBefore(btn, toolbar.firstChild);
-    (0, import_obsidian16.setIcon)(btn, "rotate-ccw");
+    (0, import_obsidian18.setIcon)(btn, "rotate-ccw");
     btn.setAttribute("aria-label", t("chat.rewind.ariaLabel"));
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -49416,7 +49680,7 @@ var MessageRenderer = class {
     });
   }
   showRewindMenu(event, messageId) {
-    const menu = new import_obsidian16.Menu();
+    const menu = new import_obsidian18.Menu();
     this.addRewindMenuItem(menu, messageId, "conversation");
     this.addRewindMenuItem(menu, messageId, "code-and-conversation");
     menu.showAtMouseEvent(event);
@@ -49431,7 +49695,7 @@ var MessageRenderer = class {
           try {
             await ((_a3 = this.rewindCallback) == null ? void 0 : _a3.call(this, messageId, mode));
           } catch (err) {
-            new import_obsidian16.Notice(t("chat.rewind.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
+            new import_obsidian18.Notice(t("chat.rewind.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
           }
         });
       });
@@ -49442,7 +49706,7 @@ var MessageRenderer = class {
     const toolbar = this.getOrCreateActionsToolbar(msgEl);
     const btn = toolbar.createSpan({ cls: "claudian-message-fork-btn" });
     if (toolbar.firstChild !== btn) toolbar.insertBefore(btn, toolbar.firstChild);
-    (0, import_obsidian16.setIcon)(btn, "git-fork");
+    (0, import_obsidian18.setIcon)(btn, "git-fork");
     btn.setAttribute("aria-label", t("chat.fork.ariaLabel"));
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -49451,7 +49715,7 @@ var MessageRenderer = class {
         try {
           await ((_a3 = this.forkCallback) == null ? void 0 : _a3.call(this, messageId));
         } catch (err) {
-          new import_obsidian16.Notice(t("chat.fork.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
+          new import_obsidian18.Notice(t("chat.fork.failed", { error: err instanceof Error ? err.message : "Unknown error" }));
         }
       });
     });
@@ -50690,10 +50954,10 @@ var ChatState = class {
 };
 
 // src/features/chat/ui/FileContext.ts
-var import_obsidian20 = require("obsidian");
+var import_obsidian22 = require("obsidian");
 
 // src/shared/mention/MentionDropdownController.ts
-var import_obsidian17 = require("obsidian");
+var import_obsidian19 = require("obsidian");
 
 // src/utils/externalContext.ts
 var fs4 = __toESM(require("fs"));
@@ -51312,17 +51576,17 @@ var MentionDropdownController = class {
             break;
           case "agent":
           case "agent-folder":
-            (0, import_obsidian17.setIcon)(iconEl, "bot");
+            (0, import_obsidian19.setIcon)(iconEl, "bot");
             break;
           case "context-file":
-            (0, import_obsidian17.setIcon)(iconEl, "folder-open");
+            (0, import_obsidian19.setIcon)(iconEl, "folder-open");
             break;
           case "folder":
           case "context-folder":
-            (0, import_obsidian17.setIcon)(iconEl, "folder");
+            (0, import_obsidian19.setIcon)(iconEl, "folder");
             break;
           default:
-            (0, import_obsidian17.setIcon)(iconEl, "file-text");
+            (0, import_obsidian19.setIcon)(iconEl, "file-text");
         }
         const textEl = itemEl.createSpan({ cls: "claudian-mention-text" });
         switch (item.type) {
@@ -51468,7 +51732,7 @@ var MentionDropdownController = class {
 };
 
 // src/shared/mention/VaultMentionCache.ts
-var import_obsidian18 = require("obsidian");
+var import_obsidian20 = require("obsidian");
 var VaultFileCache = class {
   constructor(app, options = {}) {
     this.app = app;
@@ -51547,7 +51811,7 @@ var VaultFolderCache = class {
     }
   }
   loadFolders() {
-    return this.app.vault.getAllLoadedFiles().filter((file2) => file2 instanceof import_obsidian18.TFolder && isVisibleFolder(file2));
+    return this.app.vault.getAllLoadedFiles().filter((file2) => file2 instanceof import_obsidian20.TFolder && isVisibleFolder(file2));
   }
 };
 
@@ -51757,7 +52021,7 @@ var FileContextState = class {
 };
 
 // src/features/chat/ui/file-context/view/FileChipsView.ts
-var import_obsidian19 = require("obsidian");
+var import_obsidian21 = require("obsidian");
 var FileChipsView = class {
   constructor(containerEl, callbacks) {
     this.containerEl = containerEl;
@@ -51785,14 +52049,18 @@ var FileChipsView = class {
     });
   }
   renderFileChip(filePath, onRemove) {
-    const chipEl = this.fileIndicatorEl.createDiv({ cls: "claudian-file-chip" });
+    const chipEl = this.fileIndicatorEl.createDiv({
+      cls: "claudian-file-chip claudian-file-chip--current"
+    });
     const iconEl = chipEl.createSpan({ cls: "claudian-file-chip-icon" });
-    (0, import_obsidian19.setIcon)(iconEl, "file-text");
+    (0, import_obsidian21.setIcon)(iconEl, "file-text");
     const normalizedPath = filePath.replace(/\\/g, "/");
     const filename = normalizedPath.split("/").pop() || filePath;
+    chipEl.createSpan({ cls: "claudian-file-chip-label", text: "This note" });
     const nameEl = chipEl.createSpan({ cls: "claudian-file-chip-name" });
     nameEl.setText(filename);
     nameEl.setAttribute("title", filePath);
+    chipEl.setAttribute("aria-label", `This note: ${filename}`);
     const removeEl = chipEl.createSpan({ cls: "claudian-file-chip-remove" });
     removeEl.setText("\xD7");
     removeEl.setAttribute("aria-label", "Remove");
@@ -51835,14 +52103,14 @@ var FileContextManager = class {
       onOpenFile: (filePath) => {
         void (async () => {
           const file2 = this.app.vault.getAbstractFileByPath(filePath);
-          if (!(file2 instanceof import_obsidian20.TFile)) {
-            new import_obsidian20.Notice(`Could not open file: ${filePath}`);
+          if (!(file2 instanceof import_obsidian22.TFile)) {
+            new import_obsidian22.Notice(`Could not open file: ${filePath}`);
             return;
           }
           try {
             await this.app.workspace.getLeaf().openFile(file2);
           } catch (error48) {
-            new import_obsidian20.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
+            new import_obsidian22.Notice(`Failed to open file: ${error48 instanceof Error ? error48.message : String(error48)}`);
           }
         })();
       }
@@ -51873,10 +52141,10 @@ var FileContextManager = class {
       }
     );
     this.deleteEventRef = this.app.vault.on("delete", (file2) => {
-      if (file2 instanceof import_obsidian20.TFile) this.handleFileDeleted(file2.path);
+      if (file2 instanceof import_obsidian22.TFile) this.handleFileDeleted(file2.path);
     });
     this.renameEventRef = this.app.vault.on("rename", (file2, oldPath) => {
-      if (file2 instanceof import_obsidian20.TFile) this.handleFileRenamed(oldPath, file2.path);
+      if (file2 instanceof import_obsidian22.TFile) this.handleFileRenamed(oldPath, file2.path);
     });
   }
   /** Returns the current note path (shown as chip). */
@@ -51933,20 +52201,29 @@ var FileContextManager = class {
       }
     }
   }
-  /** Handles file open event. */
+  /** Handles file open event. Always follows the active file so the chip stays honest. */
   handleFileOpen(file2) {
     const normalizedPath = this.normalizePathForVault(file2.path);
     if (!normalizedPath) return;
-    if (!this.state.isSessionStarted()) {
+    const sessionStarted = this.state.isSessionStarted();
+    if (!sessionStarted) {
       this.state.clearAttachments();
-      if (!this.hasExcludedTag(file2)) {
-        this.currentNotePath = normalizedPath;
-        this.state.attachFile(normalizedPath);
-      } else {
-        this.currentNotePath = null;
-      }
-      this.refreshCurrentNoteChip();
     }
+    const previousCurrent = this.currentNotePath;
+    if (this.hasExcludedTag(file2)) {
+      if (sessionStarted && previousCurrent) {
+        this.state.detachFile(previousCurrent);
+      }
+      this.currentNotePath = null;
+      this.refreshCurrentNoteChip();
+      return;
+    }
+    if (sessionStarted && previousCurrent && previousCurrent !== normalizedPath) {
+      this.state.detachFile(previousCurrent);
+    }
+    this.currentNotePath = normalizedPath;
+    this.state.attachFile(normalizedPath);
+    this.refreshCurrentNoteChip();
   }
   markFileCacheDirty() {
     this.mentionDataProvider.markFilesDirty();
@@ -52100,7 +52377,7 @@ var FileContextManager = class {
 };
 
 // src/features/chat/ui/ImageContext.ts
-var import_obsidian21 = require("obsidian");
+var import_obsidian23 = require("obsidian");
 var path5 = __toESM(require("path"));
 var MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 var IMAGE_EXTENSIONS2 = {
@@ -52115,6 +52392,7 @@ var ImageContextManager = class {
     this.dropOverlay = null;
     this.attachedImages = /* @__PURE__ */ new Map();
     this.enabled = true;
+    this.fileInputEl = null;
     this.containerEl = containerEl;
     this.previewContainerEl = previewContainerEl != null ? previewContainerEl : containerEl;
     this.inputEl = inputEl;
@@ -52152,6 +52430,38 @@ var ImageContextManager = class {
     }
     this.updateImagePreview();
     this.callbacks.onImagesChanged();
+  }
+  pickImages() {
+    if (!this.enabled) {
+      new import_obsidian23.Notice("Image attachments are not supported by this provider.");
+      return;
+    }
+    if (!this.fileInputEl) {
+      this.fileInputEl = this.containerEl.createEl("input", {
+        cls: "claudian-image-file-input",
+        attr: {
+          type: "file",
+          accept: "image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp",
+          multiple: "true"
+        }
+      });
+      this.fileInputEl.addEventListener("change", () => {
+        void this.handleFileInputChange();
+      });
+    }
+    this.fileInputEl.value = "";
+    this.fileInputEl.click();
+  }
+  async handleFileInputChange() {
+    var _a3;
+    const files = (_a3 = this.fileInputEl) == null ? void 0 : _a3.files;
+    if (!files) return;
+    for (let i = 0; i < files.length; i++) {
+      const file2 = files[i];
+      if (this.isImageFile(file2) || this.getMediaType(file2.name)) {
+        await this.addImageFromFile(file2, "file");
+      }
+    }
   }
   setupDragAndDrop() {
     var _a3;
@@ -52258,7 +52568,7 @@ var ImageContextManager = class {
   }
   async addImageFromFile(file2, source) {
     if (!this.enabled) {
-      new import_obsidian21.Notice("Image attachments are not supported by this provider.");
+      new import_obsidian23.Notice("Image attachments are not supported by this provider.");
       return false;
     }
     if (file2.size > MAX_IMAGE_SIZE) {
@@ -52390,17 +52700,17 @@ var ImageContextManager = class {
         userMessage = `${message} (Permission denied)`;
       }
     }
-    new import_obsidian21.Notice(userMessage);
+    new import_obsidian23.Notice(userMessage);
   }
 };
 
 // src/features/chat/ui/InputToolbar.ts
-var import_obsidian22 = require("obsidian");
+var import_obsidian24 = require("obsidian");
 var os3 = __toESM(require("os"));
 var path6 = __toESM(require("path"));
 function runToolbarAction(action, failureMessage) {
   void action().catch(() => {
-    new import_obsidian22.Notice(failureMessage);
+    new import_obsidian24.Notice(failureMessage);
   });
 }
 var ModelSelector = class {
@@ -52423,6 +52733,13 @@ var ModelSelector = class {
   render() {
     this.container.empty();
     this.buttonEl = this.container.createDiv({ cls: "claudian-model-btn" });
+    this.buttonEl.setAttribute("role", "button");
+    this.buttonEl.setAttribute("aria-haspopup", "listbox");
+    this.buttonEl.setAttribute("aria-expanded", "false");
+    this.buttonEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.setOpen(!this.container.hasClass("open"));
+    });
     this.updateDisplay();
     this.dropdownEl = this.container.createDiv({ cls: "claudian-model-dropdown" });
     this.renderOptions();
@@ -52470,6 +52787,7 @@ var ModelSelector = class {
       }
       option.addEventListener("click", (e) => {
         e.stopPropagation();
+        this.setOpen(false);
         runToolbarAction(async () => {
           await this.callbacks.onModelChange(model.value);
           this.updateDisplay();
@@ -52477,6 +52795,28 @@ var ModelSelector = class {
         }, "Failed to change model");
       });
     }
+  }
+  setOpen(open) {
+    var _a3;
+    this.container.toggleClass("open", open);
+    (_a3 = this.buttonEl) == null ? void 0 : _a3.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+};
+var AttachmentButton = class {
+  constructor(parentEl, callbacks) {
+    this.container = parentEl.createDiv({ cls: "claudian-attach-btn" });
+    this.container.setAttribute("role", "button");
+    this.container.setAttribute("aria-label", "Attach image");
+    this.container.setAttribute("title", "Attach image");
+    (0, import_obsidian24.setIcon)(this.container, "image-plus");
+    this.container.addEventListener("click", (e) => {
+      var _a3;
+      e.stopPropagation();
+      (_a3 = callbacks.onAttachImage) == null ? void 0 : _a3.call(callbacks);
+    });
+  }
+  setVisible(visible) {
+    this.container.toggleClass("claudian-hidden", !visible);
   }
 };
 var ModeSelector = class {
@@ -52740,7 +53080,7 @@ var ServiceTierToggle = class {
     this.container.empty();
     this.buttonEl = this.container.createDiv({ cls: "claudian-service-tier-button" });
     this.iconEl = this.buttonEl.createSpan({ cls: "claudian-service-tier-icon" });
-    (0, import_obsidian22.setIcon)(this.iconEl, "zap");
+    (0, import_obsidian24.setIcon)(this.iconEl, "zap");
     this.updateDisplay();
     this.buttonEl.addEventListener("click", () => {
       runToolbarAction(() => this.toggle(), "Failed to change service tier");
@@ -52797,6 +53137,9 @@ var ExternalContextSelector = class {
     this.container = parentEl.createDiv({ cls: "claudian-external-context-selector" });
     this.render();
   }
+  setVisible(visible) {
+    this.container.toggleClass("claudian-hidden", !visible);
+  }
   setOnChange(callback) {
     this.onChangeCallback = callback;
   }
@@ -52819,7 +53162,7 @@ var ExternalContextSelector = class {
     this.renderDropdown();
     if (invalidPaths.length > 0) {
       const pathNames = invalidPaths.map((p) => this.shortenPath(p)).join(", ");
-      new import_obsidian22.Notice(`Removed ${invalidPaths.length} invalid external context path(s): ${pathNames}`, 5e3);
+      new import_obsidian24.Notice(`Removed ${invalidPaths.length} invalid external context path(s): ${pathNames}`, 5e3);
       (_a3 = this.onPersistenceChangeCallback) == null ? void 0 : _a3.call(this, [...this.persistentPaths]);
     }
   }
@@ -52829,7 +53172,7 @@ var ExternalContextSelector = class {
       this.persistentPaths.delete(path7);
     } else {
       if (!isValidDirectoryPath(path7)) {
-        new import_obsidian22.Notice(`Cannot persist "${this.shortenPath(path7)}" - directory no longer exists`, 4e3);
+        new import_obsidian24.Notice(`Cannot persist "${this.shortenPath(path7)}" - directory no longer exists`, 4e3);
         return;
       }
       this.persistentPaths.add(path7);
@@ -52925,7 +53268,7 @@ var ExternalContextSelector = class {
     this.container.empty();
     const iconWrapper = this.container.createDiv({ cls: "claudian-external-context-icon-wrapper" });
     this.iconEl = iconWrapper.createDiv({ cls: "claudian-external-context-icon" });
-    (0, import_obsidian22.setIcon)(this.iconEl, "folder");
+    (0, import_obsidian24.setIcon)(this.iconEl, "folder");
     this.badgeEl = iconWrapper.createDiv({ cls: "claudian-external-context-badge" });
     this.updateDisplay();
     iconWrapper.addEventListener("click", (e) => {
@@ -52949,12 +53292,12 @@ var ExternalContextSelector = class {
       if (!result.canceled && result.filePaths.length > 0) {
         const selectedPath = result.filePaths[0];
         if (isDuplicatePath(selectedPath, this.externalContextPaths)) {
-          new import_obsidian22.Notice("This folder is already added as an external context.", 3e3);
+          new import_obsidian24.Notice("This folder is already added as an external context.", 3e3);
           return;
         }
         const conflict = findConflictingPath(selectedPath, this.externalContextPaths);
         if (conflict) {
-          new import_obsidian22.Notice(this.formatConflictMessage(selectedPath, conflict), 5e3);
+          new import_obsidian24.Notice(this.formatConflictMessage(selectedPath, conflict), 5e3);
           return;
         }
         this.externalContextPaths = [...this.externalContextPaths, selectedPath];
@@ -52963,7 +53306,7 @@ var ExternalContextSelector = class {
         this.renderDropdown();
       }
     } catch (e) {
-      new import_obsidian22.Notice("Unable to open folder picker.", 5e3);
+      new import_obsidian24.Notice("Unable to open folder picker.", 5e3);
     }
   }
   /** Formats a conflict error message for display. */
@@ -52993,14 +53336,14 @@ var ExternalContextSelector = class {
         if (isPersistent) {
           lockBtn.addClass("locked");
         }
-        (0, import_obsidian22.setIcon)(lockBtn, isPersistent ? "lock" : "unlock");
+        (0, import_obsidian24.setIcon)(lockBtn, isPersistent ? "lock" : "unlock");
         lockBtn.setAttribute("title", isPersistent ? "Persistent (click to make session-only)" : "Session-only (click to persist)");
         lockBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           this.togglePersistence(pathStr);
         });
         const removeBtn = itemEl.createSpan({ cls: "claudian-external-context-remove" });
-        (0, import_obsidian22.setIcon)(removeBtn, "x");
+        (0, import_obsidian24.setIcon)(removeBtn, "x");
         removeBtn.setAttribute("title", "Remove path");
         removeBtn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -53229,12 +53572,16 @@ var ContextUsageMeter = class {
     this.fillPath = null;
     this.percentEl = null;
     this.circumference = 0;
+    this.enabled = true;
     this.container = parentEl.createDiv({ cls: "claudian-context-meter" });
     this.render();
     this.container.addClass("claudian-hidden");
   }
   setVisible(visible) {
-    this.container.toggleClass("claudian-hidden", !visible);
+    this.enabled = visible;
+    if (!visible) {
+      this.container.addClass("claudian-hidden");
+    }
   }
   render() {
     const size = 16;
@@ -53280,7 +53627,7 @@ var ContextUsageMeter = class {
     this.percentEl = this.container.createSpan({ cls: "claudian-context-meter-percent" });
   }
   update(usage) {
-    if (!usage || usage.contextTokens <= 0) {
+    if (!this.enabled || !usage || usage.contextTokens <= 0) {
       this.container.addClass("claudian-hidden");
       return;
     }
@@ -53312,6 +53659,7 @@ var ContextUsageMeter = class {
 };
 function createInputToolbar(parentEl, callbacks) {
   const modelSelector = new ModelSelector(parentEl, callbacks);
+  const attachmentButton = new AttachmentButton(parentEl, callbacks);
   const thinkingBudgetSelector = new ThinkingBudgetSelector(parentEl, callbacks);
   const serviceTierToggle = new ServiceTierToggle(parentEl, callbacks);
   const contextUsageMeter = new ContextUsageMeter(parentEl);
@@ -53321,6 +53669,7 @@ function createInputToolbar(parentEl, callbacks) {
   const modeSelector = new ModeSelector(parentEl, callbacks);
   return {
     modelSelector,
+    attachmentButton,
     modeSelector,
     thinkingBudgetSelector,
     serviceTierToggle,
@@ -53450,7 +53799,7 @@ var InstructionModeManager = class {
 };
 
 // src/features/chat/ui/NavigationSidebar.ts
-var import_obsidian23 = require("obsidian");
+var import_obsidian25 = require("obsidian");
 var NavigationSidebar = class {
   constructor(parentEl, messagesEl) {
     this.parentEl = parentEl;
@@ -53473,7 +53822,7 @@ var NavigationSidebar = class {
   }
   createButton(cls, icon, label) {
     const btn = this.container.createDiv({ cls: `claudian-nav-btn ${cls}` });
-    (0, import_obsidian23.setIcon)(btn, icon);
+    (0, import_obsidian25.setIcon)(btn, icon);
     btn.setAttribute("aria-label", label);
     return btn;
   }
@@ -53675,7 +54024,7 @@ var NavigationSidebar = class {
 };
 
 // src/features/chat/ui/StatusPanel.ts
-var import_obsidian24 = require("obsidian");
+var import_obsidian26 = require("obsidian");
 var MAX_BASH_OUTPUTS = 50;
 var StatusPanel = class {
   constructor() {
@@ -53840,7 +54189,7 @@ var StatusPanel = class {
     const ownerDocument = (_a3 = this.todoHeaderEl.ownerDocument) != null ? _a3 : window.document;
     const icon = ownerDocument.createElement("span");
     icon.className = "claudian-status-panel-icon";
-    (0, import_obsidian24.setIcon)(icon, getToolIcon(TOOL_TODO_WRITE));
+    (0, import_obsidian26.setIcon)(icon, getToolIcon(TOOL_TODO_WRITE));
     this.todoHeaderEl.appendChild(icon);
     const label = ownerDocument.createElement("span");
     label.className = "claudian-status-panel-label";
@@ -53850,7 +54199,7 @@ var StatusPanel = class {
       if (completedCount === totalCount && totalCount > 0) {
         const status = ownerDocument.createElement("span");
         status.className = "claudian-status-panel-status status-completed";
-        (0, import_obsidian24.setIcon)(status, "check");
+        (0, import_obsidian26.setIcon)(status, "check");
         this.todoHeaderEl.appendChild(status);
       }
       if (currentTask) {
@@ -53953,7 +54302,7 @@ var StatusPanel = class {
     const headerIconEl = ownerDocument.createElement("span");
     headerIconEl.className = "claudian-tool-icon";
     headerIconEl.setAttribute("aria-hidden", "true");
-    (0, import_obsidian24.setIcon)(headerIconEl, "terminal");
+    (0, import_obsidian26.setIcon)(headerIconEl, "terminal");
     this.bashHeaderEl.appendChild(headerIconEl);
     const latest = Array.from(this.currentBashOutputs.values()).at(-1);
     const headerLabelEl = ownerDocument.createElement("span");
@@ -53973,8 +54322,8 @@ var StatusPanel = class {
     if (!this.isBashExpanded && latest) {
       summaryStatusEl.classList.add(`status-${latest.status}`);
       summaryStatusEl.setAttribute("aria-label", t("chat.bangBash.statusLabel", { status: latest.status }));
-      if (latest.status === "completed") (0, import_obsidian24.setIcon)(summaryStatusEl, "check");
-      if (latest.status === "error") (0, import_obsidian24.setIcon)(summaryStatusEl, "x");
+      if (latest.status === "completed") (0, import_obsidian26.setIcon)(summaryStatusEl, "check");
+      if (latest.status === "error") (0, import_obsidian26.setIcon)(summaryStatusEl, "x");
     } else {
       summaryStatusEl.classList.add("claudian-hidden");
     }
@@ -54012,7 +54361,7 @@ var StatusPanel = class {
     const entryIconEl = ownerDocument.createElement("span");
     entryIconEl.className = "claudian-tool-icon";
     entryIconEl.setAttribute("aria-hidden", "true");
-    (0, import_obsidian24.setIcon)(entryIconEl, "dollar-sign");
+    (0, import_obsidian26.setIcon)(entryIconEl, "dollar-sign");
     entryHeaderEl.appendChild(entryIconEl);
     const entryLabelEl = ownerDocument.createElement("span");
     entryLabelEl.className = "claudian-tool-label";
@@ -54022,8 +54371,8 @@ var StatusPanel = class {
     entryStatusEl.className = "claudian-tool-status";
     entryStatusEl.classList.add(`status-${info.status}`);
     entryStatusEl.setAttribute("aria-label", t("chat.bangBash.statusLabel", { status: info.status }));
-    if (info.status === "completed") (0, import_obsidian24.setIcon)(entryStatusEl, "check");
-    if (info.status === "error") (0, import_obsidian24.setIcon)(entryStatusEl, "x");
+    if (info.status === "completed") (0, import_obsidian26.setIcon)(entryStatusEl, "check");
+    if (info.status === "error") (0, import_obsidian26.setIcon)(entryStatusEl, "x");
     entryHeaderEl.appendChild(entryStatusEl);
     entryEl.appendChild(entryHeaderEl);
     const contentEl = ownerDocument.createElement("div");
@@ -54067,7 +54416,7 @@ ${output}` : `$ ${latest.command}`;
     try {
       await navigator.clipboard.writeText(text);
     } catch (e) {
-      new import_obsidian24.Notice(t("chat.bangBash.copyFailed"));
+      new import_obsidian26.Notice(t("chat.bangBash.copyFailed"));
     }
   }
   appendActionButton(parent, name, ariaLabel, icon, action) {
@@ -54077,7 +54426,7 @@ ${output}` : `$ ${latest.command}`;
     el.setAttribute("role", "button");
     el.setAttribute("tabindex", "0");
     el.setAttribute("aria-label", ariaLabel);
-    (0, import_obsidian24.setIcon)(el, icon);
+    (0, import_obsidian26.setIcon)(el, icon);
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       action();
@@ -54139,7 +54488,7 @@ ${output}` : `$ ${latest.command}`;
 };
 
 // src/features/chat/ui/textareaResize.ts
-var TEXTAREA_BASE_MIN_HEIGHT = 60;
+var TEXTAREA_BASE_MIN_HEIGHT = 36;
 var TEXTAREA_MIN_MAX_HEIGHT = 150;
 var TEXTAREA_MAX_HEIGHT_PERCENT = 0.55;
 function calculateTextareaMaxHeight(viewHeight) {
@@ -54272,7 +54621,7 @@ function isEnterWithoutShiftOrComposition(e) {
   return true;
 }
 function hasPlatformSendModifier(e) {
-  if (import_obsidian25.Platform.isMacOS) {
+  if (import_obsidian27.Platform.isMacOS) {
     return e.metaKey === true && !e.ctrlKey && !e.altKey;
   }
   return e.ctrlKey === true && !e.metaKey && !e.altKey;
@@ -54372,7 +54721,7 @@ function refreshTabProviderUI(tab, plugin) {
   );
 }
 function applyProviderUIGating(tab, plugin) {
-  var _a3, _b, _c, _d, _e, _f, _g, _h;
+  var _a3, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
   const capabilities = getTabCapabilities(tab, plugin);
   const uiConfig = getTabChatUIConfig(tab, plugin);
   const mcpManager = capabilities.supportsMcpTools ? getProviderMcpManager(capabilities.providerId) : null;
@@ -54382,12 +54731,15 @@ function applyProviderUIGating(tab, plugin) {
   }
   (_c = tab.ui.mcpServerSelector) == null ? void 0 : _c.setVisible(capabilities.supportsMcpTools);
   (_d = tab.ui.permissionToggle) == null ? void 0 : _d.setVisible(hasPermissionToggle);
-  (_e = tab.ui.fileContextManager) == null ? void 0 : _e.setMcpManager(mcpManager);
-  (_f = tab.ui.fileContextManager) == null ? void 0 : _f.setAgentService(
+  (_e = tab.ui.externalContextSelector) == null ? void 0 : _e.setVisible(capabilities.supportsPersistentRuntime);
+  (_f = tab.ui.contextUsageMeter) == null ? void 0 : _f.setVisible(capabilities.supportsPersistentRuntime);
+  (_g = tab.ui.fileContextManager) == null ? void 0 : _g.setMcpManager(mcpManager);
+  (_h = tab.ui.fileContextManager) == null ? void 0 : _h.setAgentService(
     ProviderWorkspaceRegistry.getAgentMentionProvider(capabilities.providerId)
   );
-  (_g = tab.ui.imageContextManager) == null ? void 0 : _g.setEnabled(capabilities.supportsImageAttachments);
-  (_h = tab.ui.contextUsageMeter) == null ? void 0 : _h.update(tab.state.usage);
+  (_i = tab.ui.imageContextManager) == null ? void 0 : _i.setEnabled(capabilities.supportsImageAttachments);
+  (_j = tab.ui.attachmentButton) == null ? void 0 : _j.setVisible(capabilities.supportsImageAttachments);
+  (_k = tab.ui.contextUsageMeter) == null ? void 0 : _k.update(tab.state.usage);
 }
 function syncTabProviderServices(tab, plugin) {
   var _a3, _b, _c, _d;
@@ -54494,6 +54846,7 @@ function createTab(options) {
       fileContextManager: null,
       imageContextManager: null,
       modelSelector: null,
+      attachmentButton: null,
       modeSelector: null,
       thinkingBudgetSelector: null,
       externalContextSelector: null,
@@ -54526,8 +54879,8 @@ function buildTabDOM(contentEl) {
   const inputEl = inputWrapper.createEl("textarea", {
     cls: "claudian-input",
     attr: {
-      placeholder: "How can i help you today?",
-      rows: "3",
+      placeholder: "Ask about this note\u2026",
+      rows: "2",
       dir: "auto"
     }
   });
@@ -54612,12 +54965,13 @@ function initializeContextManagers(tab, plugin) {
     {
       getExcludedTags: () => plugin.settings.excludedTags,
       onChipsChanged: () => {
-        var _a3, _b, _c, _d;
+        var _a3, _b, _c, _d, _e;
         (_a3 = tab.controllers.selectionController) == null ? void 0 : _a3.updateContextRowVisibility();
         (_b = tab.controllers.browserSelectionController) == null ? void 0 : _b.updateContextRowVisibility();
         (_c = tab.controllers.canvasSelectionController) == null ? void 0 : _c.updateContextRowVisibility();
+        (_d = tab.controllers.conversationController) == null ? void 0 : _d.refreshWelcome();
         autoResizeTextarea(dom.inputEl);
-        (_d = tab.renderer) == null ? void 0 : _d.scrollToBottomIfNeeded();
+        (_e = tab.renderer) == null ? void 0 : _e.scrollToBottomIfNeeded();
       },
       getExternalContexts: () => {
         var _a3;
@@ -54740,7 +55094,7 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
       const boundProvider = tab.providerId;
       const modelProvider = getProviderForModel(model, plugin.settings);
       if (modelProvider !== boundProvider) {
-        new import_obsidian25.Notice("Cannot switch provider on a bound session. Start a new tab instead.");
+        new import_obsidian27.Notice("Cannot switch provider on a bound session. Start a new tab instead.");
         (_h = tab.ui.modelSelector) == null ? void 0 : _h.updateDisplay();
         return;
       }
@@ -54809,9 +55163,14 @@ function initializeInputToolbar(tab, plugin, getProviderCatalogConfig, onProvide
         "claudian-input-plan-mode",
         mode === "plan" && getTabCapabilities(tab, plugin).supportsPlanMode
       );
+    },
+    onAttachImage: () => {
+      var _a4;
+      (_a4 = tab.ui.imageContextManager) == null ? void 0 : _a4.pickImages();
     }
   });
   tab.ui.modelSelector = toolbarComponents.modelSelector;
+  tab.ui.attachmentButton = toolbarComponents.attachmentButton;
   tab.ui.modeSelector = toolbarComponents.modeSelector;
   tab.ui.thinkingBudgetSelector = toolbarComponents.thinkingBudgetSelector;
   tab.ui.contextUsageMeter = toolbarComponents.contextUsageMeter;
@@ -54898,7 +55257,7 @@ function resolveForkSource(tab, plugin) {
   const conversation = tab.conversationId ? plugin.getConversationSync(tab.conversationId) : null;
   const sourceSessionId = tab.service ? tab.service.resolveSessionIdForFork(conversation != null ? conversation : null) : ProviderRegistry.getConversationHistoryService((_a3 = conversation == null ? void 0 : conversation.providerId) != null ? _a3 : tab.providerId).resolveSessionIdForConversation(conversation);
   if (!sourceSessionId) {
-    new import_obsidian25.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoSession") }));
+    new import_obsidian27.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoSession") }));
     return null;
   }
   return {
@@ -54912,26 +55271,26 @@ function resolveForkSource(tab, plugin) {
 async function handleForkRequest(tab, plugin, userMessageId, forkRequestCallback) {
   const { state } = tab;
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new import_obsidian25.Notice("Fork is not supported by this provider.");
+    new import_obsidian27.Notice("Fork is not supported by this provider.");
     return;
   }
   if (state.isStreaming) {
-    new import_obsidian25.Notice(t("chat.fork.unavailableStreaming"));
+    new import_obsidian27.Notice(t("chat.fork.unavailableStreaming"));
     return;
   }
   const msgs = state.messages;
   const userIdx = msgs.findIndex((m) => m.id === userMessageId);
   if (userIdx === -1) {
-    new import_obsidian25.Notice(t("chat.fork.failed", { error: t("chat.fork.errorMessageNotFound") }));
+    new import_obsidian27.Notice(t("chat.fork.failed", { error: t("chat.fork.errorMessageNotFound") }));
     return;
   }
   if (!msgs[userIdx].userMessageId) {
-    new import_obsidian25.Notice(t("chat.fork.unavailableNoUuid"));
+    new import_obsidian27.Notice(t("chat.fork.unavailableNoUuid"));
     return;
   }
   const rewindCtx = findRewindContext(msgs, userIdx);
   if (!rewindCtx.hasResponse || !rewindCtx.prevAssistantUuid) {
-    new import_obsidian25.Notice(t("chat.fork.unavailableNoResponse"));
+    new import_obsidian27.Notice(t("chat.fork.unavailableNoResponse"));
     return;
   }
   const source = resolveForkSource(tab, plugin);
@@ -54950,16 +55309,16 @@ async function handleForkRequest(tab, plugin, userMessageId, forkRequestCallback
 async function handleForkAll(tab, plugin, forkRequestCallback) {
   const { state } = tab;
   if (!getTabCapabilities(tab, plugin).supportsFork) {
-    new import_obsidian25.Notice("Fork is not supported by this provider.");
+    new import_obsidian27.Notice("Fork is not supported by this provider.");
     return;
   }
   if (state.isStreaming) {
-    new import_obsidian25.Notice(t("chat.fork.unavailableStreaming"));
+    new import_obsidian27.Notice(t("chat.fork.unavailableStreaming"));
     return;
   }
   const msgs = state.messages;
   if (msgs.length === 0) {
-    new import_obsidian25.Notice(t("chat.fork.commandNoMessages"));
+    new import_obsidian27.Notice(t("chat.fork.commandNoMessages"));
     return;
   }
   let lastAssistantUuid;
@@ -54970,7 +55329,7 @@ async function handleForkAll(tab, plugin, forkRequestCallback) {
     }
   }
   if (!lastAssistantUuid) {
-    new import_obsidian25.Notice(t("chat.fork.commandNoAssistantUuid"));
+    new import_obsidian27.Notice(t("chat.fork.commandNoAssistantUuid"));
     return;
   }
   const source = resolveForkSource(tab, plugin);
@@ -55170,7 +55529,7 @@ function initializeTabControllers(tab, plugin, component, arg4, arg5, arg6, arg7
         applyProviderUIGating(tab, plugin);
         return true;
       } catch (error48) {
-        new import_obsidian25.Notice(error48 instanceof Error ? error48.message : "Failed to initialize chat service");
+        new import_obsidian27.Notice(error48 instanceof Error ? error48.message : "Failed to initialize chat service");
         return false;
       }
     },
@@ -55681,16 +56040,16 @@ var TabBar = class {
 };
 
 // src/features/chat/tabs/TabManager.ts
-var import_obsidian27 = require("obsidian");
+var import_obsidian29 = require("obsidian");
 
 // src/shared/modals/ForkTargetModal.ts
-var import_obsidian26 = require("obsidian");
+var import_obsidian28 = require("obsidian");
 function chooseForkTarget(app) {
   return new Promise((resolve3) => {
     new ForkTargetModal(app, resolve3).open();
   });
 }
-var ForkTargetModal = class extends import_obsidian26.Modal {
+var ForkTargetModal = class extends import_obsidian28.Modal {
   constructor(app, resolve3) {
     super(app);
     this.resolved = false;
@@ -56037,17 +56396,17 @@ var TabManager = class {
       const tab = await this.forkToNewTab(context);
       if (!tab) {
         const maxTabs = this.getMaxTabs();
-        new import_obsidian27.Notice(t("chat.fork.maxTabsReached", { count: String(maxTabs) }));
+        new import_obsidian29.Notice(t("chat.fork.maxTabsReached", { count: String(maxTabs) }));
         return;
       }
-      new import_obsidian27.Notice(t("chat.fork.notice"));
+      new import_obsidian29.Notice(t("chat.fork.notice"));
     } else {
       const success2 = await this.forkInCurrentTab(context);
       if (!success2) {
-        new import_obsidian27.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoActiveTab") }));
+        new import_obsidian29.Notice(t("chat.fork.failed", { error: t("chat.fork.errorNoActiveTab") }));
         return;
       }
-      new import_obsidian27.Notice(t("chat.fork.noticeCurrentTab"));
+      new import_obsidian29.Notice(t("chat.fork.noticeCurrentTab"));
     }
   }
   async forkToNewTab(context) {
@@ -56428,7 +56787,7 @@ var TabManager = class {
 };
 
 // src/features/chat/ClaudianView.ts
-var ClaudianView = class extends import_obsidian28.ItemView {
+var ClaudianView = class extends import_obsidian30.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     // Tab management
@@ -56443,7 +56802,6 @@ var ClaudianView = class extends import_obsidian28.ItemView {
     this.activeInputTabId = null;
     // DOM Elements
     this.viewContainerEl = null;
-    this.logoEl = null;
     this.newTabButtonEl = null;
     // Header elements
     this.historyDropdown = null;
@@ -56539,8 +56897,6 @@ var ClaudianView = class extends import_obsidian28.ItemView {
     this.viewContainerEl = container;
     this.viewContainerEl.empty();
     this.viewContainerEl.addClass("claudian-container");
-    const header = this.viewContainerEl.createDiv({ cls: "claudian-header" });
-    this.buildHeader(header);
     this.navRowContent = this.buildNavRowContent();
     this.tabContentEl = this.viewContainerEl.createDiv({ cls: "claudian-tab-content-container" });
     this.buildInputFooter();
@@ -56622,12 +56978,6 @@ var ClaudianView = class extends import_obsidian28.ItemView {
   // ============================================
   // UI Building
   // ============================================
-  buildHeader(header) {
-    const titleEl = header.createDiv({ cls: "claudian-title" });
-    this.logoEl = titleEl.createSpan({ cls: "claudian-logo" });
-    this.syncHeaderLogo(DEFAULT_CHAT_PROVIDER_ID);
-    titleEl.createEl("h4", { text: "MiMo", cls: "claudian-title-text" });
-  }
   /**
    * Builds the active tab nav row content.
    * The wrapper is moved to the active tab's nav row on tab switches.
@@ -56643,31 +56993,31 @@ var ClaudianView = class extends import_obsidian28.ItemView {
         void this.handleTabClose(tabId);
       },
       onNewTab: () => {
-        void this.createNewTab().catch(() => new import_obsidian28.Notice("Failed to create tab"));
+        void this.createNewTab().catch(() => new import_obsidian30.Notice("Failed to create tab"));
       }
     });
     fragment.appendChild(this.tabBarContainerEl);
     const navActionsEl = activeDocument.createElement("div");
     navActionsEl.className = "claudian-input-nav-actions";
     this.newTabButtonEl = navActionsEl.createDiv({ cls: "claudian-input-nav-btn claudian-new-tab-btn" });
-    (0, import_obsidian28.setIcon)(this.newTabButtonEl, "square-plus");
+    (0, import_obsidian30.setIcon)(this.newTabButtonEl, "square-plus");
     this.newTabButtonEl.setAttribute("aria-label", "New tab");
     this.newTabButtonEl.addEventListener("click", () => {
-      void this.createNewTab().catch(() => new import_obsidian28.Notice("Failed to create tab"));
+      void this.createNewTab().catch(() => new import_obsidian30.Notice("Failed to create tab"));
     });
     const newBtn = navActionsEl.createDiv({ cls: "claudian-input-nav-btn" });
-    (0, import_obsidian28.setIcon)(newBtn, "square-pen");
+    (0, import_obsidian30.setIcon)(newBtn, "square-pen");
     newBtn.setAttribute("aria-label", "New conversation");
     newBtn.addEventListener("click", () => {
       void (async () => {
         var _a3;
         await ((_a3 = this.tabManager) == null ? void 0 : _a3.createNewConversation());
         this.updateHistoryDropdown();
-      })().catch(() => new import_obsidian28.Notice("Failed to create conversation"));
+      })().catch(() => new import_obsidian30.Notice("Failed to create conversation"));
     });
     const historyContainer = navActionsEl.createDiv({ cls: "claudian-history-container" });
     const historyBtn = historyContainer.createDiv({ cls: "claudian-input-nav-btn" });
-    (0, import_obsidian28.setIcon)(historyBtn, "history");
+    (0, import_obsidian30.setIcon)(historyBtn, "history");
     historyBtn.setAttribute("aria-label", "Chat history");
     this.historyDropdown = historyContainer.createDiv({ cls: "claudian-history-menu" });
     historyBtn.addEventListener("click", (e) => {
@@ -56741,7 +57091,7 @@ var ClaudianView = class extends import_obsidian28.ItemView {
     var _a3;
     const switched = (_a3 = this.tabManager) == null ? void 0 : _a3.switchToTab(tabId);
     if (switched) {
-      void switched.catch(() => new import_obsidian28.Notice("Failed to switch tab"));
+      void switched.catch(() => new import_obsidian30.Notice("Failed to switch tab"));
     }
   }
   async handleTabClose(tabId) {
@@ -56752,7 +57102,7 @@ var ClaudianView = class extends import_obsidian28.ItemView {
       await ((_c = this.tabManager) == null ? void 0 : _c.closeTab(tabId, force));
       this.updateTabBarVisibility();
     } catch (e) {
-      new import_obsidian28.Notice("Failed to close tab");
+      new import_obsidian30.Notice("Failed to close tab");
     }
   }
   async createNewTab() {
@@ -56760,7 +57110,7 @@ var ClaudianView = class extends import_obsidian28.ItemView {
     const tab = await ((_a3 = this.tabManager) == null ? void 0 : _a3.createTab());
     if (!tab) {
       const maxTabs = (_b = this.plugin.settings.maxTabs) != null ? _b : 3;
-      new import_obsidian28.Notice(`Maximum ${maxTabs} tabs allowed`);
+      new import_obsidian30.Notice(`Maximum ${maxTabs} tabs allowed`);
       this.updateTabBarVisibility();
       return;
     }
@@ -56806,24 +57156,6 @@ var ClaudianView = class extends import_obsidian28.ItemView {
     const activeTab = (_a3 = this.tabManager) == null ? void 0 : _a3.getActiveTab();
     const providerId = activeTab ? getTabProviderId(activeTab, this.plugin) : DEFAULT_CHAT_PROVIDER_ID;
     this.viewContainerEl.dataset.provider = providerId;
-    this.syncHeaderLogo(providerId);
-  }
-  /** Rebuilds the header logo SVG to match the given provider. */
-  syncHeaderLogo(providerId) {
-    var _a3, _b;
-    if (!this.logoEl) return;
-    const icon = (_b = (_a3 = ProviderRegistry.getChatUIConfig(providerId)).getProviderIcon) == null ? void 0 : _b.call(_a3);
-    if (!icon) return;
-    const existing = this.logoEl.querySelector("svg");
-    if ((existing == null ? void 0 : existing.getAttribute("data-provider")) === providerId) return;
-    this.logoEl.empty();
-    const svg = createProviderIconSvg(icon, {
-      dataProvider: providerId,
-      height: 18,
-      ownerDocument: this.logoEl.ownerDocument,
-      width: 18
-    });
-    this.logoEl.appendChild(svg);
   }
   // ============================================
   // History Dropdown
@@ -56941,7 +57273,7 @@ var ClaudianView = class extends import_obsidian28.ItemView {
         }
       }
     });
-    this.scope = new import_obsidian28.Scope(this.app.scope);
+    this.scope = new import_obsidian30.Scope(this.app.scope);
     this.scope.register([], "Escape", (e) => {
       var _a3, _b;
       if (e.isComposing) return;
@@ -57051,10 +57383,10 @@ var ClaudianView = class extends import_obsidian28.ItemView {
 // src/features/inline-edit/ui/InlineEditModal.ts
 var import_state2 = require("@codemirror/state");
 var import_view2 = require("@codemirror/view");
-var import_obsidian30 = require("obsidian");
+var import_obsidian32 = require("obsidian");
 
 // src/features/inline-edit/ui/inlineEditMarkdownPreview.ts
-var import_obsidian29 = require("obsidian");
+var import_obsidian31 = require("obsidian");
 function emptyElement(container) {
   if (typeof container.empty === "function") {
     container.empty();
@@ -57082,7 +57414,7 @@ async function renderInlineEditMarkdownPreview({
       mediaFolder,
       sourcePath
     });
-    await import_obsidian29.MarkdownRenderer.render(app, processedMarkdown, container, sourcePath, component);
+    await import_obsidian31.MarkdownRenderer.render(app, processedMarkdown, container, sourcePath, component);
     if (processedMarkdown.includes("[[") && app.metadataCache) {
       processFileLinks(app, container);
     }
@@ -57282,7 +57614,7 @@ var InlineEditModal = class {
       editorView = getEditorView(editor);
     }
     if (!editorView) {
-      new import_obsidian30.Notice("Inline edit unavailable: could not access the active editor. Try reopening the note.");
+      new import_obsidian32.Notice("Inline edit unavailable: could not access the active editor. Try reopening the note.");
       return { decision: "reject" };
     }
     return new Promise((resolve3) => {
@@ -57337,7 +57669,7 @@ var InlineEditController = class {
     this.resolvedProviderId = providerId;
     this.mentionDataProvider = new VaultMentionDataProvider(this.app, {
       onFileLoadError: () => {
-        new import_obsidian30.Notice("Failed to load vault files. Vault @-mentions may be unavailable.");
+        new import_obsidian32.Notice("Failed to load vault files. Vault @-mentions may be unavailable.");
       }
     });
     this.mentionDataProvider.initializeInBackground();
@@ -57766,7 +58098,7 @@ var InlineEditController = class {
       const vaultPath = getVaultPath(this.app);
       return normalizePathForVault(rawPath, vaultPath);
     } catch (e) {
-      new import_obsidian30.Notice("Failed to attach file: invalid path");
+      new import_obsidian32.Notice("Failed to attach file: invalid path");
       return null;
     }
   }
@@ -57863,400 +58195,6 @@ var parseNavMappings = (value) => {
   }
   return { settings: parsed };
 };
-
-// src/features/settings/ui/EnvironmentSettingsSection.ts
-var import_obsidian32 = require("obsidian");
-
-// src/features/settings/ui/EnvSnippetManager.ts
-var import_obsidian31 = require("obsidian");
-var EnvSnippetModal = class extends import_obsidian31.Modal {
-  constructor(app, plugin, snippet, scope, onSave) {
-    super(app);
-    this.plugin = plugin;
-    this.snippet = snippet;
-    this.snippetScope = scope;
-    this.onSave = onSave;
-  }
-  onOpen() {
-    const { contentEl } = this;
-    this.setTitle(this.snippet ? t("settings.envSnippets.modal.titleEdit") : t("settings.envSnippets.modal.titleSave"));
-    this.modalEl.addClass("claudian-env-snippet-modal");
-    let nameEl;
-    let descEl;
-    let envVarsEl;
-    const contextLimitInputs = /* @__PURE__ */ new Map();
-    const modelAliasInputs = /* @__PURE__ */ new Map();
-    let contextLimitsContainer = null;
-    const handleKeyDown = (e) => {
-      if (e.key === "Enter" && !e.isComposing) {
-        e.preventDefault();
-        saveSnippet();
-      } else if (e.key === "Escape" && !e.isComposing) {
-        e.preventDefault();
-        this.close();
-      }
-    };
-    const saveSnippet = () => {
-      var _a3, _b, _c;
-      const name = nameEl.value.trim();
-      if (!name) {
-        new import_obsidian31.Notice(t("settings.envSnippets.nameRequired"));
-        return;
-      }
-      const contextLimits = {};
-      for (const [modelId, input] of contextLimitInputs) {
-        const value = input.value.trim();
-        if (value) {
-          const parsed = parseContextLimit(value);
-          if (parsed !== null) {
-            contextLimits[modelId] = parsed;
-          }
-        }
-      }
-      const modelAliases = {};
-      for (const [modelId, input] of modelAliasInputs) {
-        const value = input.value.trim();
-        if (value) {
-          modelAliases[modelId] = value;
-        }
-      }
-      const snippet = {
-        id: ((_a3 = this.snippet) == null ? void 0 : _a3.id) || `snippet-${Date.now()}`,
-        name,
-        description: descEl.value.trim(),
-        envVars: envVarsEl.value,
-        scope: resolveEnvironmentSnippetScope(
-          envVarsEl.value,
-          (_c = (_b = this.snippet) == null ? void 0 : _b.scope) != null ? _c : this.snippetScope
-        ),
-        contextLimits: Object.keys(contextLimits).length > 0 ? contextLimits : void 0,
-        modelAliases: modelAliasInputs.size > 0 ? modelAliases : void 0
-      };
-      this.onSave(snippet);
-      this.close();
-    };
-    const renderContextLimitFields = () => {
-      var _a3, _b, _c, _d, _e, _f, _g;
-      if (!contextLimitsContainer) return;
-      contextLimitsContainer.empty();
-      contextLimitInputs.clear();
-      modelAliasInputs.clear();
-      const envVars = parseEnvironmentVariables(envVarsEl.value);
-      const uniqueModelIds = ProviderRegistry.getCustomModelIds(envVars);
-      if (uniqueModelIds.size === 0) {
-        contextLimitsContainer.addClass("claudian-hidden");
-        return;
-      }
-      contextLimitsContainer.removeClass("claudian-hidden");
-      const existingLimits = (_c = (_b = (_a3 = this.snippet) == null ? void 0 : _a3.contextLimits) != null ? _b : this.plugin.settings.customContextLimits) != null ? _c : {};
-      const existingAliases = (_f = (_e = (_d = this.snippet) == null ? void 0 : _d.modelAliases) != null ? _e : this.plugin.settings.customModelAliases) != null ? _f : {};
-      contextLimitsContainer.createEl("div", {
-        text: t("settings.customModelOverrides.name"),
-        cls: "setting-item-name"
-      });
-      contextLimitsContainer.createEl("div", {
-        text: t("settings.customModelOverrides.desc"),
-        cls: "setting-item-description"
-      });
-      for (const modelId of uniqueModelIds) {
-        const row = contextLimitsContainer.createDiv({ cls: "claudian-snippet-limit-row" });
-        row.createSpan({ text: modelId, cls: "claudian-snippet-limit-model" });
-        row.createSpan({ cls: "claudian-snippet-limit-spacer" });
-        const aliasInput = row.createEl("input", {
-          type: "text",
-          placeholder: t("settings.customModelAliases.placeholder"),
-          cls: "claudian-snippet-alias-input"
-        });
-        aliasInput.value = (_g = existingAliases[modelId]) != null ? _g : "";
-        aliasInput.setAttribute("aria-label", `Alias for ${modelId}`);
-        aliasInput.title = "Custom label shown in the model selector. Leave empty to use the default.";
-        modelAliasInputs.set(modelId, aliasInput);
-        const input = row.createEl("input", {
-          type: "text",
-          placeholder: "200k",
-          cls: "claudian-snippet-limit-input"
-        });
-        input.value = existingLimits[modelId] ? formatContextLimit(existingLimits[modelId]) : "";
-        input.setAttribute("aria-label", `Context window for ${modelId}`);
-        contextLimitInputs.set(modelId, input);
-      }
-    };
-    new import_obsidian31.Setting(contentEl).setName(t("settings.envSnippets.modal.name")).setDesc(t("settings.envSnippets.modal.namePlaceholder")).addText((text) => {
-      var _a3;
-      nameEl = text.inputEl;
-      text.setValue(((_a3 = this.snippet) == null ? void 0 : _a3.name) || "");
-      text.inputEl.addEventListener("keydown", handleKeyDown);
-    });
-    new import_obsidian31.Setting(contentEl).setName(t("settings.envSnippets.modal.description")).setDesc(t("settings.envSnippets.modal.descPlaceholder")).addText((text) => {
-      var _a3;
-      descEl = text.inputEl;
-      text.setValue(((_a3 = this.snippet) == null ? void 0 : _a3.description) || "");
-      text.inputEl.addEventListener("keydown", handleKeyDown);
-    });
-    const envVarsSetting = new import_obsidian31.Setting(contentEl).setName(t("settings.envSnippets.modal.envVars")).setDesc(t("settings.envSnippets.modal.envVarsPlaceholder")).addTextArea((text) => {
-      var _a3, _b;
-      envVarsEl = text.inputEl;
-      const envVarsToShow = (_b = (_a3 = this.snippet) == null ? void 0 : _a3.envVars) != null ? _b : this.plugin.getEnvironmentVariablesForScope(this.snippetScope);
-      text.setValue(envVarsToShow);
-      text.inputEl.rows = 8;
-      text.inputEl.addEventListener("blur", () => renderContextLimitFields());
-    });
-    envVarsSetting.settingEl.addClass("claudian-env-snippet-setting");
-    envVarsSetting.controlEl.addClass("claudian-env-snippet-control");
-    contextLimitsContainer = contentEl.createDiv({ cls: "claudian-snippet-context-limits" });
-    renderContextLimitFields();
-    const buttonContainer = contentEl.createDiv({ cls: "claudian-snippet-buttons" });
-    const cancelBtn = buttonContainer.createEl("button", {
-      text: t("settings.envSnippets.modal.cancel"),
-      cls: "claudian-cancel-btn"
-    });
-    cancelBtn.addEventListener("click", () => this.close());
-    const saveBtn = buttonContainer.createEl("button", {
-      text: this.snippet ? t("settings.envSnippets.modal.update") : t("settings.envSnippets.modal.save"),
-      cls: "claudian-save-btn"
-    });
-    saveBtn.addEventListener("click", () => saveSnippet());
-    window.setTimeout(() => nameEl == null ? void 0 : nameEl.focus(), 50);
-  }
-  onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
-  }
-};
-var EnvSnippetManager = class {
-  constructor(containerEl, plugin, scope, onContextLimitsChange) {
-    this.containerEl = containerEl;
-    this.plugin = plugin;
-    this.scope = scope;
-    this.onContextLimitsChange = onContextLimitsChange;
-    this.render();
-  }
-  render() {
-    this.containerEl.empty();
-    const headerEl = this.containerEl.createDiv({ cls: "claudian-snippet-header" });
-    headerEl.createSpan({ text: t("settings.envSnippets.name"), cls: "claudian-snippet-label" });
-    const saveBtn = headerEl.createEl("button", {
-      cls: "claudian-settings-action-btn",
-      attr: { "aria-label": t("settings.envSnippets.addBtn") }
-    });
-    (0, import_obsidian31.setIcon)(saveBtn, "plus");
-    saveBtn.addEventListener("click", () => {
-      void this.saveCurrentEnv();
-    });
-    const snippets = this.plugin.settings.envSnippets.filter((snippet) => this.shouldDisplaySnippet(snippet));
-    if (snippets.length === 0) {
-      const emptyEl = this.containerEl.createDiv({ cls: "claudian-snippet-empty" });
-      emptyEl.setText(t("settings.envSnippets.noSnippets"));
-      return;
-    }
-    const listEl = this.containerEl.createDiv({ cls: "claudian-snippet-list" });
-    for (const snippet of snippets) {
-      const itemEl = listEl.createDiv({ cls: "claudian-snippet-item" });
-      const infoEl = itemEl.createDiv({ cls: "claudian-snippet-info" });
-      const nameEl = infoEl.createDiv({ cls: "claudian-snippet-name" });
-      nameEl.setText(snippet.name);
-      if (snippet.description) {
-        const descEl = infoEl.createDiv({ cls: "claudian-snippet-description" });
-        descEl.setText(snippet.description);
-      }
-      const actionsEl = itemEl.createDiv({ cls: "claudian-snippet-actions" });
-      const restoreBtn = actionsEl.createEl("button", {
-        cls: "claudian-settings-action-btn",
-        attr: { "aria-label": "Insert" }
-      });
-      (0, import_obsidian31.setIcon)(restoreBtn, "clipboard-paste");
-      restoreBtn.addEventListener("click", () => {
-        void (async () => {
-          try {
-            await this.insertSnippet(snippet);
-          } catch (e) {
-            new import_obsidian31.Notice("Failed to insert snippet");
-          }
-        })();
-      });
-      const editBtn = actionsEl.createEl("button", {
-        cls: "claudian-settings-action-btn",
-        attr: { "aria-label": "Edit" }
-      });
-      (0, import_obsidian31.setIcon)(editBtn, "pencil");
-      editBtn.addEventListener("click", () => {
-        this.editSnippet(snippet);
-      });
-      const deleteBtn = actionsEl.createEl("button", {
-        cls: "claudian-settings-action-btn claudian-settings-delete-btn",
-        attr: { "aria-label": "Delete" }
-      });
-      (0, import_obsidian31.setIcon)(deleteBtn, "trash-2");
-      deleteBtn.addEventListener("click", () => {
-        void (async () => {
-          try {
-            if (await confirmDelete(this.plugin.app, `Delete environment snippet "${snippet.name}"?`)) {
-              await this.deleteSnippet(snippet);
-            }
-          } catch (e) {
-            new import_obsidian31.Notice("Failed to delete snippet");
-          }
-        })();
-      });
-    }
-  }
-  async saveCurrentEnv() {
-    const modal = new EnvSnippetModal(
-      this.plugin.app,
-      this.plugin,
-      null,
-      this.scope,
-      (snippet) => {
-        void (async () => {
-          this.plugin.settings.envSnippets.push(snippet);
-          await this.plugin.saveSettings();
-          this.render();
-          new import_obsidian31.Notice(`Environment snippet "${snippet.name}" saved`);
-        })();
-      }
-    );
-    modal.open();
-  }
-  async insertSnippet(snippet) {
-    var _a3, _b, _c, _d, _e;
-    const snippetContent = snippet.envVars.trim();
-    const updates = getEnvironmentScopeUpdates(
-      snippetContent,
-      (_a3 = snippet.scope) != null ? _a3 : this.scope
-    );
-    if (updates.length === 1) {
-      const [update] = updates;
-      this.syncTextareaValue(update.scope, update.envText);
-      await this.plugin.applyEnvironmentVariables(update.scope, update.envText);
-    } else if (updates.length > 1) {
-      for (const update of updates) {
-        this.syncTextareaValue(update.scope, update.envText);
-      }
-      await this.plugin.applyEnvironmentVariablesBatch(updates);
-    }
-    if (snippet.contextLimits) {
-      this.plugin.settings.customContextLimits = {
-        ...this.plugin.settings.customContextLimits,
-        ...snippet.contextLimits
-      };
-    }
-    if (snippet.modelAliases) {
-      const modelIds = ProviderRegistry.getCustomModelIds(parseEnvironmentVariables(snippet.envVars));
-      const nextAliases = { ...(_b = this.plugin.settings.customModelAliases) != null ? _b : {} };
-      for (const modelId of modelIds) {
-        const alias = (_c = snippet.modelAliases[modelId]) == null ? void 0 : _c.trim();
-        if (alias) {
-          nextAliases[modelId] = alias;
-        } else {
-          delete nextAliases[modelId];
-        }
-      }
-      this.plugin.settings.customModelAliases = nextAliases;
-    }
-    await this.plugin.saveSettings();
-    (_d = this.onContextLimitsChange) == null ? void 0 : _d.call(this);
-    const view = (_e = this.plugin.app.workspace.getLeavesOfType("claudian-view")[0]) == null ? void 0 : _e.view;
-    view == null ? void 0 : view.refreshModelSelector();
-  }
-  editSnippet(snippet) {
-    const modal = new EnvSnippetModal(
-      this.plugin.app,
-      this.plugin,
-      snippet,
-      this.scope,
-      (updatedSnippet) => {
-        void (async () => {
-          const index = this.plugin.settings.envSnippets.findIndex((s) => s.id === snippet.id);
-          if (index !== -1) {
-            this.plugin.settings.envSnippets[index] = updatedSnippet;
-            await this.plugin.saveSettings();
-            this.render();
-            new import_obsidian31.Notice(`Environment snippet "${updatedSnippet.name}" updated`);
-          }
-        })();
-      }
-    );
-    modal.open();
-  }
-  async deleteSnippet(snippet) {
-    this.plugin.settings.envSnippets = this.plugin.settings.envSnippets.filter((s) => s.id !== snippet.id);
-    await this.plugin.saveSettings();
-    this.render();
-    new import_obsidian31.Notice(`Environment snippet "${snippet.name}" deleted`);
-  }
-  refresh() {
-    this.render();
-  }
-  shouldDisplaySnippet(snippet) {
-    if (this.scope === "shared") {
-      return !snippet.scope || snippet.scope === "shared";
-    }
-    return snippet.scope === this.scope;
-  }
-  syncTextareaValue(scope, value) {
-    var _a3;
-    const selector = `.claudian-settings-env-textarea[data-env-scope="${scope}"]`;
-    const envTextarea = ((_a3 = this.containerEl.ownerDocument) != null ? _a3 : window.document).querySelector(selector);
-    if (envTextarea) {
-      envTextarea.value = value;
-    }
-  }
-};
-
-// src/features/settings/ui/EnvironmentSettingsSection.ts
-function renderEnvironmentSettingsSection(options) {
-  const {
-    container,
-    plugin,
-    scope,
-    heading,
-    name,
-    desc,
-    placeholder,
-    renderCustomContextLimits
-  } = options;
-  if (heading) {
-    new import_obsidian32.Setting(container).setName(heading).setHeading();
-  }
-  let envTextarea = null;
-  const reviewEl = container.createDiv({
-    cls: "claudian-env-review-warning claudian-setting-validation claudian-setting-validation-warning claudian-hidden"
-  });
-  const updateReviewWarning = () => {
-    var _a3;
-    const reviewKeys = getEnvironmentReviewKeysForScope((_a3 = envTextarea == null ? void 0 : envTextarea.value) != null ? _a3 : "", scope);
-    if (reviewKeys.length === 0) {
-      reviewEl.toggleClass("claudian-hidden", true);
-      reviewEl.empty();
-      return;
-    }
-    reviewEl.setText(`Review environment ownership for: ${reviewKeys.join(", ")}`);
-    reviewEl.toggleClass("claudian-hidden", false);
-  };
-  new import_obsidian32.Setting(container).setName(name).setDesc(desc).addTextArea((text) => {
-    text.setPlaceholder(placeholder).setValue(plugin.getEnvironmentVariablesForScope(scope));
-    text.inputEl.rows = 6;
-    text.inputEl.cols = 50;
-    text.inputEl.addClass("claudian-settings-env-textarea");
-    text.inputEl.dataset.envScope = scope;
-    text.inputEl.addEventListener("input", () => updateReviewWarning());
-    text.inputEl.addEventListener("blur", () => {
-      void (async () => {
-        await plugin.applyEnvironmentVariables(scope, text.inputEl.value);
-        renderCustomContextLimits == null ? void 0 : renderCustomContextLimits(contextLimitsContainer);
-        updateReviewWarning();
-      })();
-    });
-    envTextarea = text.inputEl;
-  });
-  updateReviewWarning();
-  const contextLimitsContainer = container.createDiv({ cls: "claudian-context-limits-container" });
-  renderCustomContextLimits == null ? void 0 : renderCustomContextLimits(contextLimitsContainer);
-  const envSnippetsContainer = container.createDiv({ cls: "claudian-env-snippets-container" });
-  new EnvSnippetManager(envSnippetsContainer, plugin, scope, () => {
-    renderCustomContextLimits == null ? void 0 : renderCustomContextLimits(contextLimitsContainer);
-  });
-}
 
 // src/features/settings/ClaudianSettings.ts
 function formatHotkey(hotkey) {
@@ -58431,15 +58369,6 @@ var ClaudianSettingTab = class extends import_obsidian33.PluginSettingTab {
         });
       }
     );
-    new import_obsidian33.Setting(container).setName(t("settings.expandFileEditsByDefault.name")).setDesc(t("settings.expandFileEditsByDefault.desc")).addToggle(
-      (toggle) => {
-        var _a3;
-        return toggle.setValue((_a3 = this.plugin.settings.expandFileEditsByDefault) != null ? _a3 : false).onChange(async (value) => {
-          this.plugin.settings.expandFileEditsByDefault = value;
-          await this.plugin.saveSettings();
-        });
-      }
-    );
     new import_obsidian33.Setting(container).setName(t("settings.conversations")).setHeading();
     new import_obsidian33.Setting(container).setName(t("settings.autoTitle.name")).setDesc(t("settings.autoTitle.desc")).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableAutoTitleGeneration).onChange(async (value) => {
@@ -58474,17 +58403,6 @@ var ClaudianSettingTab = class extends import_obsidian33.PluginSettingTab {
         this.plugin.settings.userName = value;
         await this.plugin.saveSettings();
       });
-      text.inputEl.addEventListener("blur", () => {
-        void this.restartServiceForPromptChange();
-      });
-    });
-    new import_obsidian33.Setting(container).setName(t("settings.systemPrompt.name")).setDesc(t("settings.systemPrompt.desc")).addTextArea((text) => {
-      text.setPlaceholder(t("settings.systemPrompt.name")).setValue(this.plugin.settings.systemPrompt).onChange(async (value) => {
-        this.plugin.settings.systemPrompt = value;
-        await this.plugin.saveSettings();
-      });
-      text.inputEl.rows = 6;
-      text.inputEl.cols = 50;
       text.inputEl.addEventListener("blur", () => {
         void this.restartServiceForPromptChange();
       });
@@ -58558,21 +58476,11 @@ var ClaudianSettingTab = class extends import_obsidian33.PluginSettingTab {
     });
     new import_obsidian33.Setting(container).setName(t("settings.hotkeys")).setHeading();
     const hotkeyGrid = container.createDiv({ cls: "claudian-hotkey-grid" });
-    addHotkeySettingRow(hotkeyGrid, this.app, "claudian:inline-edit", "settings.inlineEditHotkey");
-    addHotkeySettingRow(hotkeyGrid, this.app, "claudian:open-view", "settings.openChatHotkey");
-    addHotkeySettingRow(hotkeyGrid, this.app, "claudian:new-session", "settings.newSessionHotkey");
-    addHotkeySettingRow(hotkeyGrid, this.app, "claudian:new-tab", "settings.newTabHotkey");
-    addHotkeySettingRow(hotkeyGrid, this.app, "claudian:close-current-tab", "settings.closeTabHotkey");
-    renderEnvironmentSettingsSection({
-      container,
-      plugin: this.plugin,
-      scope: "shared",
-      heading: t("settings.environment"),
-      name: "Shared environment",
-      desc: "Provider-neutral runtime variables shared across all providers. Use this for PATH, proxy, cert, and temp variables.",
-      placeholder: "PATH=/opt/homebrew/bin:/usr/local/bin\nHTTPS_PROXY=http://proxy.example.com:8080\nSSL_CERT_FILE=/path/to/cert.pem",
-      renderCustomContextLimits: (target) => this.renderCustomContextLimits(target)
-    });
+    addHotkeySettingRow(hotkeyGrid, this.app, "mimocode:inline-edit", "settings.inlineEditHotkey");
+    addHotkeySettingRow(hotkeyGrid, this.app, "mimocode:open-view", "settings.openChatHotkey");
+    addHotkeySettingRow(hotkeyGrid, this.app, "mimocode:new-session", "settings.newSessionHotkey");
+    addHotkeySettingRow(hotkeyGrid, this.app, "mimocode:new-tab", "settings.newTabHotkey");
+    addHotkeySettingRow(hotkeyGrid, this.app, "mimocode:close-current-tab", "settings.closeTabHotkey");
   }
   renderHiddenProviderCommandSetting(container, providerId, copy) {
     new import_obsidian33.Setting(container).setName(copy.name).setDesc(copy.desc).addTextArea((text) => {
@@ -58737,7 +58645,7 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
     });
     this.addCommand({
       id: "open-view",
-      name: "Open chat view",
+      name: "Open chat",
       callback: () => {
         void this.activateView();
       }
@@ -58909,7 +58817,7 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
     await view.createNewTab();
   }
   async loadSettings() {
-    var _a3;
+    var _a3, _b;
     this.storage = new SharedStorageService(this);
     const { claudian } = await this.storage.initialize();
     this.lastKnownTabManagerState = await this.storage.getTabManagerState();
@@ -58935,13 +58843,14 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
       this.settings
     );
     const didNormalizeModelVariants = this.normalizeModelVariantSettings();
+    this.attachProviderTranscriptStorage();
     const allMetadata = await this.storage.sessions.listMetadata();
-    this.conversations = allMetadata.map((meta3) => {
-      var _a4;
+    const restoredConversations = [];
+    for (const meta3 of allMetadata) {
       const resumeSessionId = meta3.sessionId !== void 0 ? meta3.sessionId : meta3.id;
-      return {
+      const conversation = {
         id: meta3.id,
-        providerId: (_a4 = meta3.providerId) != null ? _a4 : DEFAULT_CHAT_PROVIDER_ID,
+        providerId: (_b = meta3.providerId) != null ? _b : DEFAULT_CHAT_PROVIDER_ID,
         title: meta3.title,
         createdAt: meta3.createdAt,
         updatedAt: meta3.updatedAt,
@@ -58956,10 +58865,16 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
         titleGenerationStatus: meta3.titleGenerationStatus,
         resumeAtMessageId: meta3.resumeAtMessageId
       };
-    }).sort(
+      await this.loadSdkMessagesForConversation(conversation);
+      if (conversation.messages.length === 0) {
+        continue;
+      }
+      restoredConversations.push(conversation);
+    }
+    this.conversations = restoredConversations.sort(
       (a, b) => {
-        var _a4, _b;
-        return ((_a4 = b.lastResponseAt) != null ? _a4 : b.updatedAt) - ((_b = a.lastResponseAt) != null ? _b : a.updatedAt);
+        var _a4, _b2;
+        return ((_a4 = b.lastResponseAt) != null ? _a4 : b.updatedAt) - ((_b2 = a.lastResponseAt) != null ? _b2 : a.updatedAt);
       }
     );
     setLocale(this.settings.locale);
@@ -59169,6 +59084,19 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
     const previewText = (_b = (_a3 = firstUserMsg.displayContent) != null ? _a3 : extractUserDisplayContent(firstUserMsg.content)) != null ? _b : firstUserMsg.content;
     return previewText.substring(0, 50) + (previewText.length > 50 ? "..." : "");
   }
+  attachProviderTranscriptStorage() {
+    var _a3, _b;
+    const adapter = this.storage.getAdapter();
+    const configDir = this.app.vault.configDir;
+    const pluginId = this.manifest.id;
+    for (const providerId of ProviderRegistry.getRegisteredProviderIds()) {
+      (_b = (_a3 = ProviderRegistry.getConversationHistoryService(providerId)).attachWorkspaceStorage) == null ? void 0 : _b.call(_a3, {
+        adapter,
+        configDir,
+        pluginId
+      });
+    }
+  }
   async loadSdkMessagesForConversation(conversation) {
     await ProviderRegistry.getConversationHistoryService(conversation.providerId).hydrateConversationHistory(conversation, getVaultPath(this.app));
   }
@@ -59227,6 +59155,7 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
     );
   }
   async updateConversation(id, updates) {
+    var _a3;
     const conversation = this.conversations.find((c) => c.id === id);
     if (!conversation) return;
     const safeUpdates = { ...updates };
@@ -59235,7 +59164,9 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
     await this.storage.sessions.saveMetadata(
       this.storage.sessions.toSessionMetadata(conversation)
     );
-    if (!ProviderRegistry.getConversationHistoryService(conversation.providerId).isPendingForkConversation(conversation)) {
+    const history = ProviderRegistry.getConversationHistoryService(conversation.providerId);
+    await ((_a3 = history.persistConversationMessages) == null ? void 0 : _a3.call(history, conversation));
+    if (!history.persistConversationMessages && !history.isPendingForkConversation(conversation)) {
       for (const msg of conversation.messages) {
         if (msg.images) {
           for (const img of msg.images) {
@@ -59259,7 +59190,7 @@ var ClaudianPlugin = class extends import_obsidian34.Plugin {
     return this.conversations.find((c) => c.messages.length === 0) || null;
   }
   getConversationList() {
-    return this.conversations.map((c) => ({
+    return this.conversations.filter((c) => c.messages.length > 0).map((c) => ({
       id: c.id,
       providerId: c.providerId,
       title: c.title,

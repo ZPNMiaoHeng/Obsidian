@@ -46,7 +46,7 @@
         "startupType": "long"
       },
       "file-tree-alternative": {
-        "startupType": "instant"
+        "startupType": "short"
       },
       "obsidian-git": {
         "startupType": "long"
@@ -79,7 +79,7 @@
         "startupType": "disabled"
       },
       "quick-explorer": {
-        "startupType": "instant"
+        "startupType": "long"
       },
       "recent-notes": {
         "startupType": "instant"

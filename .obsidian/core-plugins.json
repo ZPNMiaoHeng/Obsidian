@@ -21,13 +21,13 @@
   "random-note": false,
   "outline": true,
   "word-count": true,
-  "slides": true,
+  "slides": false,
   "audio-recorder": false,
   "workspaces": true,
   "file-recovery": true,
   "publish": false,
   "sync": false,
   "webviewer": true,
-  "footnotes": true,
+  "footnotes": false,
   "bases": true
 }
