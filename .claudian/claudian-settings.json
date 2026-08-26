@@ -1,7 +1,7 @@
 {
   "userName": "Miaooog",
   "permissionMode": "yolo",
-  "model": "mimo-v2.5",
+  "model": "mimo-v2.5-pro",
   "thinkingBudget": "none",
   "effortLevel": "none",
   "serviceTier": "default",
@@ -25,10 +25,10 @@
   "providerConfigs": {
     "mimo": {
       "enabled": true,
-      "billingMode": "payg",
-      "apiKey": "sk-cxtn39gry2pvbnjb0n50rk96q8i6dj33g0qwucngrcg5d93r",
-      "cluster": "ams",
-      "model": "mimo-v2.5"
+      "billingMode": "token-plan",
+      "apiKey": "tp-c3gykmda54orrknyplp11u1wsnbwla2bj7jclolnakzbofmd",
+      "cluster": "cn",
+      "model": "mimo-v2.5-pro"
     },
     "claude": {
       "safeMode": "acceptEdits",
@@ -85,7 +85,7 @@
   },
   "settingsProvider": "mimo",
   "savedProviderModel": {
-    "mimo": "mimo-v2.5"
+    "mimo": "mimo-v2.5-pro"
   },
   "savedProviderEffort": {
     "mimo": "none"

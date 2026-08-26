@@ -1,11 +1,10 @@
 {
   "id": "conv-1787623455149-35366sfa4",
   "providerId": "mimo",
-  "title": "hi",
-  "titleGenerationStatus": "failed",
+  "title": "Respond to greeting",
+  "titleGenerationStatus": "success",
   "createdAt": 1787623455162,
-  "updatedAt": 1787624172964,
-  "lastResponseAt": 1787624172964,
-  "sessionId": null,
-  "currentNote": "Note/Templete/Homepage.md"
+  "updatedAt": 1787739177850,
+  "lastResponseAt": 1787739177850,
+  "sessionId": null
 }
