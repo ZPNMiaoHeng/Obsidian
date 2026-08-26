@@ -9,10 +9,10 @@ status: 进行中
 
 > 🧭 昨日：`= "[[" + dateformat(this.file.day - dur(1 day), "YYYY-MM-DD") + "|←]]"` ｜ `= dateformat(this.file.day, "EEEE")` ｜ 明日：`= "[[" + dateformat(this.file.day + dur(1 day), "YYYY-MM-DD") + "|→]]"`
 
-## 🎯 今日要事（最多 3 件）
-- [ ] 
-- [ ] 
-- [ ] 
+> [!tip] 🎯 今日要事（最多 3 件）
+> - ▢
+> - ▢
+> - ▢
 
 # Day planner
 - [ ] 

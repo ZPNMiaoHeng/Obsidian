@@ -154,7 +154,7 @@
         "startupType": "disabled"
       },
       "mimocode": {
-        "startupType": "long"
+        "startupType": "disabled"
       },
       "sidebar-mimocode": {
         "startupType": "disabled"
