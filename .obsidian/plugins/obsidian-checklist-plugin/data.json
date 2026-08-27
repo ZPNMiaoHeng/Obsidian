@@ -11,7 +11,9 @@
   "sortDirectionSubGroups": "new->old",
   "includeFiles": "",
   "lookAndFeel": "classic",
-  "_collapsedSections": [],
+  "_collapsedSections": [
+    "Note/Templete/Weekly temp.md"
+  ],
   "_hiddenTags": [
     "pro_todo"
   ]
