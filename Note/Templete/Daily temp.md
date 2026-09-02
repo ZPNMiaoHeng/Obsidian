@@ -7,7 +7,6 @@ status: 进行中
 ---
 # 📅 {{date:YYYY-MM-DD}}
 
-> 🧭 昨日：`= "[[" + dateformat(this.file.day - dur(1 day), "YYYY-MM-DD") + "|←]]"` ｜ `= dateformat(this.file.day, "EEEE")` ｜ 明日：`= "[[" + dateformat(this.file.day + dur(1 day), "YYYY-MM-DD") + "|→]]"`
 
 > [!tip] 🎯 今日要事（最多 3 件）
 > - ▢
@@ -43,10 +42,3 @@ TASK FROM "Note/Daily"
 WHERE !completed AND file.day < date(today) AND file.day >= date(today) - dur(7 days)
 SORT file.day ASC
 ```
-
-%% 使用说明：
-- 本模板由「日记」核心插件自动套用，日期占位符会被替换为当天日期（无需 Templater）；
-- `# Day planner` 是 Day Planner 插件识别的固定标题，请勿改名或改变级别；
-- 文件自带 `todo` 标签（frontmatter），待办聚合插件会自动收集其中的任务；
-- 未完成任务会被首页与周记的 Dataview 自动汇总。
-%%
