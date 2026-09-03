@@ -3,7 +3,7 @@
   "nativeMenus": false,
   "accentColor": "#94e2d5",
   "cssTheme": "Minimal",
-  "baseFontSize": 17,
+  "baseFontSize": 24,
   "baseFontSizeAction": true,
   "monospaceFontFamily": "Inter",
   "textFontFamily": "Inter",
