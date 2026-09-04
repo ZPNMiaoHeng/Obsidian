@@ -203,7 +203,7 @@ ECC 写回不是独立异步请求源，其唯一触发链路为：
 [^1]: [[ARB_Implementation_Plan_Review@20260801_161037]]
 [^2]: [[ARB_Implementation_Feasibility_Review@20260801_143836]]
 [^3]: [[ARB_Plan_Feasibility_Review_Request@20260801_154755]]
-[^4]: [[TCAM_ARB实现方案]]
+[^4]: [[TCAM端口仲裁方案]]
 [^5]: [[TCAM_ECC校验实现方案]]
 [^6]: [[Valid_Bit_TCAM_Separation@20260722_154956]]
 [Timestamp: 2026/08/01 17:01:48]

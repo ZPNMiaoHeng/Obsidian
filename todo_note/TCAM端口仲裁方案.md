@@ -2,7 +2,7 @@
 
 ---
 
-## TCAM_ARB 实现方案 v2.2
+## TCAM端口仲裁实现方案 v2.2
 
 ---
 
@@ -182,7 +182,7 @@ ECC 写回不是独立异步请求源，其唯一触发链路为：
 #### Sources
 
 [^1]: [[方案可行性评估@20260801_171940]]
-[^2]: [[TCAM_ARB实现方案]]
+[^2]: [[TCAM端口仲裁方案]]
 [^3]: [[Counter_Reset_on_Software_Failure@20260801_165927]]
 [^4]: [[ARB_Implementation_Feasibility_Review@20260801_143836]]
 [^5]: [[ARB_Implementation_Plan_Review@20260801_161037]]

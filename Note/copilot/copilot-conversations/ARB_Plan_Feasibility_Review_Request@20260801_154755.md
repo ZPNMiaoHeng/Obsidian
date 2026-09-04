@@ -102,7 +102,7 @@ tags:
 其中 ECC 巡检读的饿死保护已知为独立开放项[^2]，建议与本次修改一并纳入版本计划。
 
 #### Sources
-[^1]: [[TCAM_ARB实现方案]]
+[^1]: [[TCAM端口仲裁方案]]
 [^2]: [[ARB_Implementation_Feasibility_Review@20260801_143836]]
 [Timestamp: 2026/08/01 15:49:10]
 
